@@ -2,7 +2,7 @@
 # Import Stable Baselines stuff
 import os,time, sys
 import numpy as np
-from iiwaTest import iiwaTest
+from PyBulletRobot import PyBulletRobot
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv 
 # from stable_baselines3.common.vec_env import VecFrameStack # used to vectorize enviornment
@@ -10,7 +10,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 import matplotlib.pyplot as plt
 
 # # Look at it play untrained
-# env_render = iiwaTest(renderType = True)
+# env_render = PyBulletRobot(renderType = True)
 # episodes = 5
 # for episode in range(1,episodes+1):
 #     obs = env_render.reset()
@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 
 ###########################
 # # Training
-# env = iiwaTest(renderType = False)
+# env = PyBulletRobot(renderType = False)
 # # env = VecFrameStack(env, n_stack = 4) # A wrapper to tack the enviornment
 
 # log_path = os.path.join('Training','Logs')
@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 
 ###########################
 # Evaluate saved Policty
-env_render = iiwaTest(renderType = False)
+env_render = PyBulletRobot(renderType = False)
 log_path = os.path.join('Training','Logs')
 
 iiwaTest_path = os.path.join('Training','Saved_Models','iiwa_Model_PPO')

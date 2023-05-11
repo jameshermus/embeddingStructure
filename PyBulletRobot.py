@@ -13,7 +13,7 @@ import pybullet as p
 import pybullet_data
 import math
 
-class iiwaTest(Env):
+class PyBulletRobot(Env):
     def __init__(self,renderType):
 
         self.time = 0
