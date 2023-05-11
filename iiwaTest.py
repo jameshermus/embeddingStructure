@@ -87,7 +87,8 @@ class iiwaTest(Env):
 
     def step(self,action):
 
-        target = self.x_initial+np.array([[0.3,0.3,0]]).transpose() # Hard code target for first pass
+        target = np.array([self.x_initial]).transpose()+np.array([[0.2,0.2,0]]).transpose() # Hard code target for first pass
+        reward = 0
 
         while self.time <= self.timeMax:
             # Define control torque
@@ -97,6 +98,17 @@ class iiwaTest(Env):
             # Step simulation
             p.stepSimulation()
             self.time += self.timeStep
+
+            # Update State
+            q,q_dot = self.get_robotStates(type ='list')
+            self.state['jointPostion'] = q
+            self.state['jointVelocity'] = q_dot
+
+            # Observation
+            observation = np.array([self.get_ee_position()]).transpose()
+            
+            # Assign Reward
+            reward += -1*np.linalg.norm(target-observation) # distance cost per time step
             
             # Simulate Real time
             if self.renderType:
@@ -105,21 +117,12 @@ class iiwaTest(Env):
                 while(sleep):
 	                if(time.perf_counter() >= cur + self.timeStep):
 		                sleep = 0
-        
-        # Update State
-        q,q_dot = self.get_robotStates(type ='list')
-        self.state['jointPostion'] = q
-        self.state['jointVelocity'] = q_dot
 
-        # Observation
-        observation = np.array([self.get_ee_position()]).transpose()
 
-        # Assign Reward
-        reward = -1*np.linalg.norm(target-observation) # distance cost per time step
 
         # Initialize info
         info = {}
-
+     
         # # Let simulation run a fixed number of time steps
         # if self.time >= self.timeMax:
         #         done = True
@@ -153,13 +156,13 @@ class iiwaTest(Env):
          p.disconnect()
 
     def controller(self,action):
-        Kq = np.diag([10,10,10,10,10,10,10])
+        Kq = np.diag([1,1,1,1,1,1,1])
         Bq = 0.1*Kq
         q,q_dot = self.get_robotStates(type='np')
         q0 = np.array([self.q_initial]).transpose() # np.zeros((self.nJoints,1))
         q0_dot = np.zeros((self.nJoints,1))
 
-        Kx = np.diag([1000,1000,1000])
+        Kx = np.diag([5000,5000,5000])
         Bx = 0.1*Kx
         X = np.array([self.get_ee_position()]).transpose()
         jac_t_fn = self.get_trans_jacobian()
@@ -199,10 +202,28 @@ class iiwaTest(Env):
     def getZFT(self,action): # Later this will become get primatives
         # Import and scale all variables are originally 0-1
         duration = action[0]*2+0.2
-        amplitude = action[1]*0.3+0.01
+        amplitude = action[1]*1+0.01
         direction = action[2]*2*np.pi
 
         x0,x0_dot = self.submovement(duration, amplitude, direction)
+
+        # # # Submovement Santiy Check (Post-rotation)
+        # n = 1000
+        # tvec = np.linspace(0,3,n)
+        # x0 = np.empty((3,n))
+        # for count, t in enumerate(tvec):
+        #     self.time = t
+        #     x0_tmp,x0_dot_tmp = self.submovement(duration, amplitude, direction)
+        #     x0[:,count] = np.ndarray.flatten(x0_tmp)
+
+        # fig, ax = plt.subplots()
+        # target = [0.3,0.3,0]
+        # ax.plot(x0[0,:],x0[1,:])
+        # ax.plot(target[0],target[1],marker='o',markersize=10,color='k')
+        # plt.xlim(0, 0.8)
+        # plt.ylim(-1, 1)
+        # plt.show()
+
         return x0, x0_dot 
     
     def submovement(self,D,A,Direction):
@@ -214,6 +235,24 @@ class iiwaTest(Env):
 
         X0 = np.insert(X0,2,0,axis=0) + np.array([self.x_initial]).transpose() # add initial condition for now
         X0_dot = np.insert(X0_dot,2,0,axis=0)
+
+        # Submovement Sanity Check (pre-rotation)
+        # x0_1d = []
+        # x0_dot_1d = []
+        # tvec = np.linspace(0,3,1000)
+        # for count, t in enumerate(tvec):
+        #     self.time = t
+        #     x,xd,_ = self.getMinJerkTraj_1D(D,A,0) # Hard code tstart for now
+        #     x0_1d.append(x)
+        #     x0_dot_1d.append(xd)
+
+        # fig, ax = plt.subplots()
+        # ax.plot(tvec,x0_1d)
+        # plt.show()
+
+        # fig, ax = plt.subplots()
+        # ax.plot(tvec,x0_dot_1d)
+        # plt.show()
 
         return X0,X0_dot
          
