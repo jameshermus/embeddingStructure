@@ -15,7 +15,7 @@ import math
 
 from robot import robot, robot_iiwa, robot_iiwa_tauController, robot_iiwa_zftController, robot_iiwa_submovementControl
 
-class PyBulletRobotTest(Env):
+class PyBulletRobot(Env):
     def __init__(self,renderType):
 
         self.time = 0
