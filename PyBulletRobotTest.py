@@ -13,8 +13,7 @@ import pybullet as p
 import pybullet_data
 import math
 
-from robot import robot, robot_iiwa
-from controller import controller, zftController
+from robot import robot, robot_iiwa, robot_iiwa_tauController, robot_iiwa_zftController, robot_iiwa_submovementControl
 
 class PyBulletRobotTest(Env):
     def __init__(self,renderType):
@@ -34,22 +33,18 @@ class PyBulletRobotTest(Env):
         self.q_ititial = self.q_initial.tolist()
 
         # Add panda, table, box, and object
-        self.robot = robot_iiwa(p)
-        
+        # self.robot = robot_iiwa_tauController(p)
+        # self.robot = robot_iiwa_zftController(p)
+        self.robot = robot_iiwa_submovementControl(p)
+
         # Setup enviornment
         self.get_enviornment(p)
-
-        # Initialize controller
-        self.controller = zftController(self.robot)
-
-        # Set target position
-        self.target = np.array([self.robot.x_initial]).transpose()+np.array([[0.2,0.2,0]]).transpose() # Hard code target for first pass
 
         # Define Spaces
         # Target (x,y,z) extracted from step()
         # Submovement (duration, amplitude, direction) extracted in getZFT()
 
-        self.action_space, self.observation_space = self.controller.define_spaces()
+        self.action_space, self.observation_space = self.robot.define_spaces()
 
         # q,q_dot = self.get_robotStates(type ='list')
         # self.state = {'jointPostion':q,'jointVelocity':q_dot}
@@ -67,30 +62,30 @@ class PyBulletRobotTest(Env):
         p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=0, cameraPitch=-40, cameraTargetPosition=[0.55,-0.35,0.2])
         
         # Time Step
-        self.timeStep = 1/500
+        self.timeStep = 1/750
         p.setTimeStep(self.timeStep)
 
-        self.timeMax = 3
+        self.timeMax = 0.5
 
     def step(self,action):
 
-        tau = self.controller(self.state, action)
-        p.setJointMotorControlArray(self.robotUid, range(self.nJoints),controlMode=p.TORQUE_CONTROL, forces = tau)
+        tau,extraCost = self.robot.get_torque(p,action,self.time)
+        p.setJointMotorControlArray(self.robot.robotUid, range(self.robot.nJoints),controlMode=p.TORQUE_CONTROL, forces = tau)
         
         # Step simulation
         p.stepSimulation()
         self.time += self.timeStep
 
         # Update State
-        q,q_dot = self.get_robotStates(type ='list')
-        self.state['jointPostion'] = q
-        self.state['jointVelocity'] = q_dot
+        # q,q_dot = self.get_robotStates(type ='list')
+        # self.state['jointPostion'] = q
+        # self.state['jointVelocity'] = q_dot
 
         # Observation
-        observation = np.array([self.get_ee_position()]).transpose()
+        observation = self.get_observation(p)
             
         # Assign Reward
-        reward = -1*np.linalg.norm(target-observation) # distance cost per time step
+        reward = -1*np.linalg.norm(self.target_tb_b-self.robot.get_ee_position(p)) + extraCost # distance cost per time step
             
         # Simulate Real time
         if self.renderType:
@@ -106,27 +101,37 @@ class PyBulletRobotTest(Env):
         # Let simulation run a fixed number of time steps
         if self.time >= self.timeMax:
                 done = True
+        elif (np.abs(reward) < 0.2):
+                done = True
         else:
                 done = False
         
         return observation, reward, done, info
 
     
-    def render(self):
+    def render(self,env):
         pass
 
     def reset(self):
         for i in range(self.robot.nJoints):
             p.resetJointState(self.robot.robotUid, i, targetValue = self.robot.q_initial[i], targetVelocity = 0)
 
-        q, q_dot = self.robot.get_robotStates(p)
+        self.time = 0 # Reset time
 
-        self.time = 0
+        # Convert target abstract to vector 
+        self.target_ti_b = self.observation_space.sample()[0:3] # For now use target (t) which is plus or minus 0.25 m from initial end-effector position (i) represented in the base frame (b)
 
-        # return self.state
-        observation = np.array([self.get_ee_position()]).transpose()
+        # Define self.target_tb_b # vector from the origin of the base frame to the target expressed in base coordinates
+        self.target_tb_b = self.target_ti_b + self.robot.initial_ib_b  # Hard code target for first pass
+
+        observation = self.get_observation(p)
 
         return observation
     
     def close(self):
          p.disconnect()
+
+    def get_observation(self,p):
+        # obervation uses the target reletive to the inital end-effector pose
+        observation = np.concatenate((self.target_ti_b,self.robot.get_ee_position(p)),axis=0)
+        return observation
