@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 # http://localhost:6006/
 
 # computationType = 'EvaluatePreLearning'
-# computationType = 'Learn'
-computationType = 'hardcode'
+computationType = 'Learn'
+# computationType = 'hardcode'
 # computationType = 'Learn - Vectorized'
 # computationType = 'Evaluate'
 
@@ -39,10 +39,11 @@ if( computationType == 'EvaluatePreLearning'):
 if( computationType == 'hardcode'):
 
     # Add code to import a model
-    # saveName = 'PPO_Submoement_LearnVec20_000'
-    # log_path = os.path.join('Training','Logs')
-    # iiwaTest_path = os.path.join('Training','Saved_Models', saveName)
-    # model = PPO.load(iiwaTest_path)
+    # saveName = 'PPO_Submovement_Learn/best_model'
+    saveName = 'PPO_Submovement_Learn.zip'
+    log_path = os.path.join('Training','Logs')
+    iiwaTest_path = os.path.join('Training','Saved_Models', saveName)
+    model = PPO.load(iiwaTest_path)
 
     # Hard code submovement as a sanity check
     env = PyBulletRobot(renderType = True)
@@ -58,19 +59,19 @@ if( computationType == 'hardcode'):
     x0_dot = np.zeros((3,int(N)))
     while not done:
 
-        if( count == 1 ):
-            # action = env.action_space.sample()
-            action = np.array([[0.9],[0.2],[0.2],[np.pi*(0.0)]])# Apply submovement - Place selection greater than 0.5
-        else:
-            action = np.array([[0.1],[10.0],[10.0],[10.0]]) # No submovement - Place selection less than 0.5
+        # if( count == 1 ):
+        #     # action = env.action_space.sample()
+        #     action = np.array([[0.9],[0.2],[0.2],[np.pi*(0.0)]])# Apply submovement - Place selection greater than 0.5
+        # else:
+        #     action = np.array([[0.1],[10.0],[10.0],[10.0]]) # No submovement - Place selection less than 0.5
         
-        # action = model.predict(obs,deterministic=False)[0] # Use trained model
+        action = model.predict(obs,deterministic=False)[0] # Use trained model
 
         obs, reward, done, info = env.step(action)
         score += reward
-        x_0b_b, x0_dot_b = env.robot.sumOnGoingSubmovements(env.time)
-        x0[:,count] = x_0b_b.flatten()
-        x0_dot[:,count] = x0_dot_b.flatten()
+        # x_0b_b, x0_dot_b = env.robot.sumOnGoingSubmovements(env.time)
+        # x0[:,count] = x_0b_b.flatten()
+        # x0_dot[:,count] = x0_dot_b.flatten()
         print('Episode:{} Score:{}'.format(episode, score))
         count += 1
     env.close()
@@ -113,7 +114,7 @@ if(computationType ==  'Learn'):
     # - add call backs
     # - Try to implament as an integration of velocity
     
-    saveName = 'PPO_Submoement_Learn'
+    saveName = 'PPO_Submovement_Learn'
     log_path = os.path.join('Training','Logs')
     save_path = os.path.join('Training','Saved_Models', saveName)
 
@@ -123,7 +124,7 @@ if(computationType ==  'Learn'):
 
     model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
 
-    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-50, verbose=1)
+    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-20, verbose=1)
     eval_callback = EvalCallback(env, 
                                  callback_on_new_best=stop_callback, 
                                  eval_freq=20_000, 

@@ -102,9 +102,20 @@ class robot_iiwa_zftController(robot_iiwa):
     def define_spaces(self):
         action_space = Box(0,1,shape=(3,)) 
         observation_space = Box(0,1,shape=(3,1))
+
+        # Obervation Space min and max
+        target_range = [-0.3, 0.3]
+        position_range = [-1.0,1.0]
+
+        observation_min = np.array([[target_range[0]],[target_range[0]],[target_range[0]],[position_range[0]],[position_range[0]],[position_range[0]]],dtype=np.float32)
+        observation_max = np.array([[target_range[1]],[target_range[1]],[target_range[1]],[position_range[1]],[position_range[1]],[position_range[1]]],dtype=np.float32)
+
+        action_space = Box(low = -1, high = 1, shape=(3,1)) 
+        observation_space = Box(low = observation_min, high=observation_max, shape=(6,1)) # First 3 target, second 3 current position
+
         return action_space, observation_space
 
-    def get_torque(self,p, action,time):
+    def get_torque(self, p, action, time):
         Kq = np.diag([1,1,1,1,1,1,1])
         Bq = 0.1*Kq
         q,q_dot = self.get_robotStates(p)

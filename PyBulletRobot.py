@@ -34,8 +34,8 @@ class PyBulletRobot(Env):
 
         # Add panda, table, box, and object
         # self.robot = robot_iiwa_tauController(p)
-        # self.robot = robot_iiwa_zftController(p)
-        self.robot = robot_iiwa_submovementControl(p)
+        self.robot = robot_iiwa_zftController(p)
+        # self.robot = robot_iiwa_submovementControl(p)
 
         # Setup enviornment
         self.get_enviornment(p)
