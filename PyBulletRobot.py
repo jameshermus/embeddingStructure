@@ -101,8 +101,8 @@ class PyBulletRobot(Env):
         # Let simulation run a fixed number of time steps
         if self.time >= self.timeMax:
                 done = True
-        elif (np.abs(reward) < 0.2):
-                done = True
+        # elif (np.abs(reward) < 0.2):
+        #         done = True
         else:
                 done = False
         
@@ -119,7 +119,8 @@ class PyBulletRobot(Env):
         self.time = 0 # Reset time
 
         # Convert target abstract to vector 
-        self.target_ti_b = self.observation_space.sample()[0:3] # For now use target (t) which is plus or minus 0.25 m from initial end-effector position (i) represented in the base frame (b)
+        # self.target_ti_b = self.observation_space.sample()[0:3] # For now use target (t) which is plus or minus 0.25 m from initial end-effector position (i) represented in the base frame (b)
+        self.target_ti_b = np.array([[0.2],[0.0],[0.0]])
 
         # Define self.target_tb_b # vector from the origin of the base frame to the target expressed in base coordinates
         self.target_tb_b = self.target_ti_b + self.robot.initial_ib_b  # Hard code target for first pass
