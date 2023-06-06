@@ -120,7 +120,7 @@ class PyBulletRobot(Env):
 
         # Convert target abstract to vector 
         # self.target_ti_b = self.observation_space.sample()[0:3] # For now use target (t) which is plus or minus 0.25 m from initial end-effector position (i) represented in the base frame (b)
-        self.target_ti_b = np.array([[0.2],[0.0],[0.0]])
+        self.target_ti_b = np.array([[0.2],[0.1],[0.0]])
 
         # Define self.target_tb_b # vector from the origin of the base frame to the target expressed in base coordinates
         self.target_tb_b = self.target_ti_b + self.robot.initial_ib_b  # Hard code target for first pass
