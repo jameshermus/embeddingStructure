@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 # computationType = 'EvaluatePreLearning'
 # computationType = 'Learn'
 # computationType = 'hardcode'
-computationType = 'Learn - Vectorized'
+# computationType = 'Learn - Vectorized'
 # computationType = 'Evaluate'
 
 saveName = 'iiwa_tauControl'
@@ -59,13 +59,13 @@ if( computationType == 'hardcode'):
     x0_dot = np.zeros((3,int(N)))
     while not done:
 
-        # if( count == 1 ):
-        #     # action = env.action_space.sample()
-        #     action = np.array([[0.9],[0.2],[0.2],[np.pi*(0.0)]])# Apply submovement - Place selection greater than 0.5
-        # else:
-        #     action = np.array([[0.1],[10.0],[10.0],[10.0]]) # No submovement - Place selection less than 0.5
+        if( count == 1 ):
+            # action = env.action_space.sample()
+            action = np.array([[0.9],[0.2],[0.2],[np.pi*(0.0)]])# Apply submovement - Place selection greater than 0.5
+        else:
+            action = np.array([[0.1],[10.0],[10.0],[10.0]]) # No submovement - Place selection less than 0.5
         
-        action = model.predict(obs,deterministic=False)[0] # Use trained model
+        # action = model.predict(obs,deterministic=False)[0] # Use trained model
 
         obs, reward, done, info = env.step(action)
         score += reward
@@ -123,7 +123,7 @@ if(computationType ==  'Learn'):
     obs = env.reset()
 
     model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
-    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-5, verbose=1)
+    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-1, verbose=1)
     eval_callback = EvalCallback(env, 
                                  callback_on_new_best=stop_callback, 
                                  eval_freq=20_000, 
@@ -154,8 +154,8 @@ if(computationType ==  'Learn - Vectorized'):
     # Vectorize the environments
     vec_env = DummyVecEnv(env_fns)
     model = PPO('MlpPolicy',vec_env,verbose=1,tensorboard_log=log_path)
-    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-5, verbose=1)
-    eval_callback = EvalCallback(env, 
+    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-1, verbose=1)
+    eval_callback = EvalCallback(vec_env, 
                                  callback_on_new_best=stop_callback, 
                                  eval_freq=20_000, 
                                  best_model_save_path=save_path, 

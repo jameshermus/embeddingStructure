@@ -45,6 +45,9 @@ class robot_iiwa(robot):
 
     def get_ee_position(self,p):
         return np.array([p.getLinkState(self.robotUid, self.ee_id)[0]]).transpose()
+        
+    def get_ee_velocity(self,p):
+        return np.array([p.getLinkState(self.robotUid, self.ee_id, computeLinkVelocity=True)[6]]).transpose()
     
     def get_robotStates(self,p):
         joint_state = p.getJointStates(self.robotUid, range(self.nJoints))
@@ -98,24 +101,28 @@ class robot_iiwa_tauController(robot_iiwa):
 class robot_iiwa_zftController(robot_iiwa):
     def __init__(self,p):
         super().__init__(p)
+        self.priorAction = []
 
     def define_spaces(self):
-        action_space = Box(0,1,shape=(3,)) 
-        observation_space = Box(0,1,shape=(3,1))
 
         # Obervation Space min and max
         target_range = [-0.3, 0.3]
         position_range = [-1.0,1.0]
+        velocity_range = [-100.0,100.0]
 
-        observation_min = np.array([[target_range[0]],[target_range[0]],[target_range[0]],[position_range[0]],[position_range[0]],[position_range[0]]],dtype=np.float32)
-        observation_max = np.array([[target_range[1]],[target_range[1]],[target_range[1]],[position_range[1]],[position_range[1]],[position_range[1]]],dtype=np.float32)
-
+        observation_min = np.array([[target_range[0]],[target_range[0]],[target_range[0]],
+                                    [position_range[0]],[position_range[0]],[position_range[0]],
+                                    [velocity_range[0]],[velocity_range[0]],[velocity_range[0]]],dtype=np.float32)
+        observation_max = np.array([[target_range[1]],[target_range[1]],[target_range[1]],
+                                    [position_range[1]],[position_range[1]],[position_range[1]],
+                                    [velocity_range[1]],[velocity_range[1]],[velocity_range[1]]],dtype=np.float32)
+        
         action_space = Box(low = -1, high = 1, shape=(3,1)) 
-        observation_space = Box(low = observation_min, high=observation_max, shape=(6,1)) # First 3 target, second 3 current position
+        observation_space = Box(low = observation_min, high = observation_max, shape = (9,1)) # First 3 target, second 3 current position, third 3 observed speed
 
         return action_space, observation_space
 
-    def get_torque(self, p, action, time):
+    def get_torque(self, p, action, time,step = True):
         Kq = np.diag([1,1,1,1,1,1,1])
         Bq = 0.1*Kq
         q,q_dot = self.get_robotStates(p)
@@ -127,7 +134,13 @@ class robot_iiwa_zftController(robot_iiwa):
         jac_t_fn = self.get_trans_jacobian(p)
         X = self.get_ee_position(p)
         X_dot = np.matmul(jac_t_fn,q)
-        X0 = action.reshape(3,1)
+
+        if(step):
+            X0 = action.reshape(3,1)
+            self.priorAction = action
+        else:
+            X0 = self.priorAction.reshape(3,1)
+
         X0_dot = np.zeros((3,1))
         
         tau = np.matmul(jac_t_fn.transpose(), np.matmul(Kx,(X0-X)) + np.matmul(Bx,(X0_dot-X_dot)) ) + np.matmul(Kq,(q0-q)) + np.matmul(Bq,(q0_dot-q_dot))
@@ -144,31 +157,36 @@ class robot_iiwa_submovementControl(robot_iiwa):
         # Action Space Ranges min and max
         actionSelection_range = [0.0, 1.0]
         duration_range = [0.2, 1.0]
-        amplitude_range = [0.1, 1.0]
-        direction_range = [0,2*np.pi]
+        amplitude_range = [0.1, 0.3]
+        direction_range = [0, 2*np.pi]
 
         action_min = np.array([[actionSelection_range[0]],
                                [duration_range[0]], 
-                               [amplitude_range[0]],
-                               [direction_range[0]]],dtype=np.float32)
+                               [amplitude_range[0]]],dtype=np.float32)
+                            #    [direction_range[0]]],dtype=np.float32)
         
         action_max = np.array([[actionSelection_range[1]],
                                [duration_range[1]], 
-                               [amplitude_range[1]],
-                               [direction_range[1]]],dtype=np.float32)
+                               [amplitude_range[1]]],dtype=np.float32)
+                            #    [direction_range[1]]],dtype=np.float32)
 
         # Obervation Space min and max
         target_range = [-0.3, 0.3]
         position_range = [-1.0,1.0]
+        velocity_range = [-100.0,100.0]
 
-        observation_min = np.array([[target_range[0]],[target_range[0]],[target_range[0]],[position_range[0]],[position_range[0]],[position_range[0]]],dtype=np.float32)
-        observation_max = np.array([[target_range[1]],[target_range[1]],[target_range[1]],[position_range[1]],[position_range[1]],[position_range[1]]],dtype=np.float32)
+        observation_min = np.array([[target_range[0]],[target_range[0]],[target_range[0]],
+                                    [position_range[0]],[position_range[0]],[position_range[0]],
+                                    [velocity_range[0]],[velocity_range[0]],[velocity_range[0]]],dtype=np.float32)
+        observation_max = np.array([[target_range[1]],[target_range[1]],[target_range[1]],
+                                    [position_range[1]],[position_range[1]],[position_range[1]],
+                                    [velocity_range[1]],[velocity_range[1]],[velocity_range[1]]],dtype=np.float32)
 
-        action_space = Box(low = action_min, high=action_max,shape=(4,1)) 
-        observation_space = Box(low = observation_min, high=observation_max, shape=(6,1)) # First 3 target, second 3 current position
+        action_space = Box(low = action_min, high = action_max,shape = (3,1)) 
+        observation_space = Box(low = observation_min, high = observation_max, shape = (9,1)) # First 3 target, second 3 current position, third 3 observed speed
         return action_space, observation_space
 
-    def get_torque(self,p,action,time):
+    def get_torque(self,p,action,time,step=True):
         Kq = np.diag([1,1,1,1,1,1,1])
         Bq = 0.1*Kq
         q,q_dot = self.get_robotStates(p)
@@ -180,28 +198,29 @@ class robot_iiwa_submovementControl(robot_iiwa):
         X = self.get_ee_position(p)
         jac_t_fn = self.get_trans_jacobian(p)
         X_dot = np.matmul(jac_t_fn,q_dot)
-        X0,X0_dot,extraCost = self.getZFT(action, time)
+        X0,X0_dot,extraCost = self.getZFT(action, time, step)
         
         tau = np.matmul(jac_t_fn.transpose(), np.matmul(Kx,(X0-X)) + np.matmul(Bx,(X0_dot-X_dot)) ) + np.matmul(Kq,(q0-q)) + np.matmul(Bq,(q0_dot-q_dot))
 
         return tau, extraCost
     
-    def getZFT(self,action,time): # Later this will become get primatives
-        # Because this function changes self.onGoingSubmovements only call it with step==True when using step function
-        # in all other cases leave step == false
-
-        # Import and scale all variables are originally 0-1
-        actionSelection =  True if action[0]>0.5 else False
-        duration = action[1]
-        amplitude = action[2]
-        direction = action[3]
-
+    def getZFT(self,action,time,step=True): # Later this will become get primatives
+        # To allow for getZFT to be called by the simulation when no new actions are passed step
+            
         extraCost = 0
+
+        if(step):
+            # Import and scale all variables are originally 0-1
+            actionSelection =  True if action[0]>0.5 else False
+            duration = action[1]
+            amplitude = action[2]
+            direction = 0 #action[3]
         
-        # add to list
-        if actionSelection: # Applied only when step == true
-            self.onGoingSubmovements.append([duration, amplitude, direction, time])
-            extraCost = -10
+            # add to list
+            if actionSelection: # Applied only when step == true
+                self.onGoingSubmovements.append([duration, amplitude, direction, time])
+                extraCost = -1
+        
 
         # Remove submovements which are no longer active **ADD LATER TO MAKE MORE EFFICIENT
         # self.onGoingSubmovements = [submov for submov in self.onGoingSubmovements if (submov[0]+submov[3]) >= time]
