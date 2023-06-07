@@ -113,7 +113,7 @@ class PyBulletRobot(Env):
         # error = self.target_tb_b-self.robot.get_ee_position(p)
         # reward = -1*np.matmul(error.transpose(),error)[0,0] + extraCost # distance cost per time step
         sigma = np.array([[0.1, 0], [0, 0.1]])
-        reward = multivariate_normal.pdf([0,0], mean=self.target_tb_b[0:2].flatten(), cov=sigma) + extraCost
+        reward = multivariate_normal.pdf(self.robot.get_ee_position(p)[0:2].flatten(), mean=self.target_tb_b[0:2].flatten(), cov=sigma) + extraCost
 
         ###
         # Check PDF eval

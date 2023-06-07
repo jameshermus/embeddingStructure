@@ -219,7 +219,7 @@ class robot_iiwa_submovementControl(robot_iiwa):
             # add to list
             if actionSelection: # Applied only when step == true
                 self.onGoingSubmovements.append([duration, amplitude, direction, time])
-                extraCost = -1
+                extraCost = -5
         
 
         # Remove submovements which are no longer active **ADD LATER TO MAKE MORE EFFICIENT

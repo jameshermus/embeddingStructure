@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 # http://localhost:6006/
 
 # computationType = 'EvaluatePreLearning'
-# computationType = 'Learn'
+computationType = 'Learn'
 # computationType = 'hardcode'
 # computationType = 'Learn - Vectorized'
 # computationType = 'Evaluate'
@@ -123,7 +123,7 @@ if(computationType ==  'Learn'):
     obs = env.reset()
 
     model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
-    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-1, verbose=1)
+    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=10, verbose=1)
     eval_callback = EvalCallback(env, 
                                  callback_on_new_best=stop_callback, 
                                  eval_freq=20_000, 
@@ -154,7 +154,7 @@ if(computationType ==  'Learn - Vectorized'):
     # Vectorize the environments
     vec_env = DummyVecEnv(env_fns)
     model = PPO('MlpPolicy',vec_env,verbose=1,tensorboard_log=log_path)
-    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-1, verbose=1)
+    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=10, verbose=1)
     eval_callback = EvalCallback(vec_env, 
                                  callback_on_new_best=stop_callback, 
                                  eval_freq=20_000, 
