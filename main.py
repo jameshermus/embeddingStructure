@@ -11,6 +11,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold
 import matplotlib.pyplot as plt
+import time
 
 # http://localhost:6006/
 
@@ -22,7 +23,7 @@ computationType = 'Learn'
 
 saveName = 'iiwa_tauControl'
 
-if( computationType == 'EvaluatePreLearning'):
+if( computationType == 'EvaluatePreLearning' ):
 # Look at it play untrained
     env = PyBulletRobot(renderType = True)
     obs = env.reset()
@@ -36,14 +37,15 @@ if( computationType == 'EvaluatePreLearning'):
         print('Episode:{} Score:{}'.format(episode, score))
     env.close()
 
-if( computationType == 'hardcode'):
+if( computationType == 'hardcode' ):
 
+    start = time.time()
     # Add code to import a model
     # saveName = 'PPO_Submovement_Learn/best_model'
-    saveName = 'PPO_Submovement_Learn.zip'
-    log_path = os.path.join('Training','Logs')
-    iiwaTest_path = os.path.join('Training','Saved_Models', saveName)
-    model = PPO.load(iiwaTest_path)
+    # saveName = 'PPO_Submovement_Learn.zip'
+    # log_path = os.path.join('Training','Logs')
+    # iiwaTest_path = os.path.join('Training','Saved_Models', saveName)
+    # model = PPO.load(iiwaTest_path)
 
     # Hard code submovement as a sanity check
     env = PyBulletRobot(renderType = True)
@@ -75,7 +77,8 @@ if( computationType == 'hardcode'):
         print('Episode:{} Score:{}'.format(episode, score))
         count += 1
     env.close()
-    print('test')
+    end = time.time()
+    print('Duration:', end-start,'seconds')
     target_ti_b - initial_ib_b
     target_ti_b + initial_ib_b - obs[3:6]
     print(env.robot.onGoingSubmovements)
@@ -126,7 +129,7 @@ if(computationType ==  'Learn'):
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold=10, verbose=1)
     eval_callback = EvalCallback(env, 
                                  callback_on_new_best=stop_callback, 
-                                 eval_freq=20_000, 
+                                 eval_freq=1_000, 
                                  best_model_save_path=save_path, 
                                  verbose=1)
 

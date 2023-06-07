@@ -15,7 +15,7 @@ import pybullet as p
 import pybullet_data
 import math
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 from robot import robot, robot_iiwa, robot_iiwa_tauController, robot_iiwa_zftController, robot_iiwa_submovementControl
 
@@ -77,7 +77,6 @@ class PyBulletRobot(Env):
     def step(self,action):
         extraCost = 0
         for i in range(0,int(self.nStepsAction)):
-
             # Only apply action on first time step, then simulate for self.nStepsAction more
             if i == 0:
                  step = True
