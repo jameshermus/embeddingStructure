@@ -34,8 +34,8 @@ class PyBulletRobot(Env):
 
         # Add panda, table, box, and object
         # self.robot = robot_iiwa_tauController(p)
-        self.robot = robot_iiwa_zftController(p)
-        # self.robot = robot_iiwa_submovementControl(p)
+        # self.robot = robot_iiwa_zftController(p)
+        self.robot = robot_iiwa_submovementControl(p)
 
         # Setup enviornment
         self.get_enviornment(p)
@@ -85,7 +85,9 @@ class PyBulletRobot(Env):
         observation = self.get_observation(p)
             
         # Assign Reward
-        reward = -1*np.linalg.norm(self.target_tb_b-self.robot.get_ee_position(p)) + extraCost # distance cost per time step
+        # reward = -1*np.linalg.norm(self.target_tb_b-self.robot.get_ee_position(p)) + extraCost # distance cost per time step
+        error = self.target_tb_b-self.robot.get_ee_position(p)
+        reward = -1*np.matmul(error.transpose(),error)[0,0] + extraCost # distance cost per time step
             
         # Simulate Real time
         if self.renderType:

@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 
 # computationType = 'EvaluatePreLearning'
 # computationType = 'Learn'
-computationType = 'hardcode'
-# computationType = 'Learn - Vectorized'
+# computationType = 'hardcode'
+computationType = 'Learn - Vectorized'
 # computationType = 'Evaluate'
 
 saveName = 'iiwa_tauControl'
@@ -123,7 +123,7 @@ if(computationType ==  'Learn'):
     obs = env.reset()
 
     model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
-    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-20, verbose=1)
+    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-5, verbose=1)
     eval_callback = EvalCallback(env, 
                                  callback_on_new_best=stop_callback, 
                                  eval_freq=20_000, 
@@ -138,29 +138,32 @@ if(computationType ==  'Learn'):
 
 if(computationType ==  'Learn - Vectorized'):
 
+    saveName = 'PPO_Submovement_LearnVec'
     log_path = os.path.join('Training','Logs')
-    iiwaTest_path = os.path.join('Training','Saved_Models', 'PPO_Submoement_LearnVec20_000')
+    save_path = os.path.join('Training','Saved_Models', saveName)
 
     # Create a function that returns your custom environment
     def make_env():
         return PyBulletRobot(renderType=False)
 
     # Number of parallel environments to run
-    num_envs = 4
-
+    num_envs = 12
     # Create a list of environment functions
     env_fns = [make_env for _ in range(num_envs)]
 
     # Vectorize the environments
     vec_env = DummyVecEnv(env_fns)
-
     model = PPO('MlpPolicy',vec_env,verbose=1,tensorboard_log=log_path)
-
-    model.learn(total_timesteps=20_000)
-
+    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-5, verbose=1)
+    eval_callback = EvalCallback(env, 
+                                 callback_on_new_best=stop_callback, 
+                                 eval_freq=20_000, 
+                                 best_model_save_path=save_path, 
+                                 verbose=1)
+    model.learn(total_timesteps=100_000_000,callback=eval_callback)
     model.save(iiwaTest_path)
 
-    evaluate_policy(model,vec_env, n_eval_episodes=10,render=False)
+    # evaluate_policy(model,vec_env, n_eval_episodes=10,render=False)
 
 if (computationType == 'Evaluate'):
     saveName = 'PPO_Submoement_Learn20_000'
