@@ -155,7 +155,7 @@ if(computationType ==  'Learn - Vectorized'):
     vec_env = DummyVecEnv(env_fns)
     model = PPO('MlpPolicy',vec_env,verbose=1,tensorboard_log=log_path)
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-5, verbose=1)
-    eval_callback = EvalCallback(env, 
+    eval_callback = EvalCallback(vec_env, 
                                  callback_on_new_best=stop_callback, 
                                  eval_freq=20_000, 
                                  best_model_save_path=save_path, 
