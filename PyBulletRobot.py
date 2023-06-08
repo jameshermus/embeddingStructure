@@ -81,7 +81,7 @@ class PyBulletRobot(Env):
             if i == 0:
                  step = True
             else: 
-                 step = False
+                 step = True
 
             tau,extraCostSingle = self.robot.get_torque(p,action,self.time,step)
             extraCost += extraCostSingle
@@ -109,10 +109,10 @@ class PyBulletRobot(Env):
             
         # Assign Reward
         # reward = -1*np.linalg.norm(self.target_tb_b-self.robot.get_ee_position(p)) + extraCost # distance cost per time step
-        # error = self.target_tb_b-self.robot.get_ee_position(p)
-        # reward = -1*np.matmul(error.transpose(),error)[0,0] + extraCost # distance cost per time step
-        sigma = np.array([[0.1, 0], [0, 0.1]])
-        reward = multivariate_normal.pdf(self.robot.get_ee_position(p)[0:2].flatten(), mean=self.target_tb_b[0:2].flatten(), cov=sigma) + extraCost
+        error = self.target_tb_b-self.robot.get_ee_position(p)
+        reward = -1*np.matmul(error.transpose(),error)[0,0] + extraCost # distance cost per time step
+        # sigma = np.array([[0.1, 0], [0, 0.1]])
+        # reward = multivariate_normal.pdf(self.robot.get_ee_position(p)[0:2].flatten(), mean=self.target_tb_b[0:2].flatten(), cov=sigma) + extraCost
 
         ###
         # Check PDF eval

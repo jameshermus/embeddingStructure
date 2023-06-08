@@ -111,6 +111,8 @@ if( computationType == 'hardcode' ):
 if(computationType ==  'Learn'):
 
     # To do:
+    # - Try simple 1D case
+    # - Remove reward tuning
     # - Try not changing target to make it faster at first
     # - check saving is working and that improviment is observed
     # - check tensorboard learn how modify
