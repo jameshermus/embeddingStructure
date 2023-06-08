@@ -15,9 +15,9 @@ import matplotlib.pyplot as plt
 # http://localhost:6006/
 
 # computationType = 'EvaluatePreLearning'
-# computationType = 'Learn'
+computationType = 'Learn'
 # computationType = 'hardcode'
-computationType = 'Learn - Vectorized'
+# computationType = 'Learn - Vectorized'
 # computationType = 'Evaluate'
 
 saveName = 'iiwa_tauControl'
