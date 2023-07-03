@@ -6,7 +6,7 @@ from gym.spaces import Box
 
 class controller(ABC):
     def __init__(self):
-        self.m = 1 # Set mass
+        self.m = 1 # Set mass (kg)
         pass
     
     @abstractmethod

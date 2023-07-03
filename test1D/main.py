@@ -33,9 +33,9 @@ if( computationType == 'EvaluatePreLearning'):
     count = 0
     env.render(mode = 'human')
     while not done:
-        action = env.action_space.sample()
+        # action = env.action_space.sample()
         # action = np.array([100], dtype=np.float32)
-        # action = np.array([0.5], dtype=np.float32)
+        action = np.array([0.5], dtype=np.float32)
 
         obs, reward, done, info = env.step(action)
         if count >= 30:
@@ -48,7 +48,7 @@ if( computationType == 'EvaluatePreLearning'):
 if( computationType == 'hardcode'):
 
     # Add code to import a model
-    saveName = 'PPO_x0_Learn.zip'
+    saveName = 'PPO_f_Learn.zip'
     log_path = os.path.join('Training','Logs')
     save_path = os.path.join('Training','Saved_Models', saveName)
     model = PPO.load(save_path)
@@ -60,10 +60,11 @@ if( computationType == 'hardcode'):
     score = 0
     episode = 0
     count = 0
-    N = 1.0/env.timeStep + 1
+    N = 0.2/env.timeStep + 1
     x = np.zeros((int(N)))
     f = np.zeros((int(N)))
     while not done:
+        # action = np.array([0.5], dtype=np.float32)
         action = model.predict(obs,deterministic=False)[0] # Use trained model
         obs, reward, done, info = env.step(action)
         f[count],_ = env.robot.get_force(obs, action, env.time) # action[0]
@@ -117,7 +118,7 @@ if( computationType == 'hardcode - submovement'):
 
 if(computationType ==  'Learn'):
     
-    saveName = 'PPO_x0_Learn'
+    saveName = 'PPO_f_Learn'
     log_path = os.path.join('Training','Logs')
     save_path = os.path.join('Training','Saved_Models', saveName)
 
@@ -126,14 +127,14 @@ if(computationType ==  'Learn'):
     obs = env.reset()
 
     model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
-    # stop_callback = StopTrainingOnRewardThreshold(reward_threshold=460, verbose=1)
+    # stop_callback = StopTrainingOnRewardThreshold(reward_threshold=250, verbose=1)
     # eval_callback = EvalCallback(env, 
     #                              callback_on_new_best=stop_callback, 
     #                              eval_freq=20_000, 
     #                              best_model_save_path=save_path, 
     #                              verbose=1)
     # model.learn(total_timesteps=1_000_000_000,callback=eval_callback)
-    model.learn(total_timesteps=1_000_000)
+    model.learn(total_timesteps=500_000)
 
     model.save(save_path)
 
@@ -141,7 +142,7 @@ if(computationType ==  'Learn'):
 
 if(computationType ==  'Learn - Vectorized'):
 
-    saveName = 'PPO_x0_LearnVec'
+    saveName = 'PPO_f_LearnVec'
     log_path = os.path.join('Training','Logs')
     save_path = os.path.join('Training','Saved_Models', saveName)
 
@@ -157,16 +158,20 @@ if(computationType ==  'Learn - Vectorized'):
     # Vectorize the environments
     vec_env = DummyVecEnv(env_fns)
     model = PPO('MlpPolicy',vec_env,verbose=1,tensorboard_log=log_path)
-    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=460, verbose=1)
+    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-18, verbose=1)
     eval_callback = EvalCallback(vec_env, 
                                  callback_on_new_best=stop_callback, 
                                  eval_freq=20_000, 
                                  best_model_save_path=save_path, 
                                  verbose=1)
     model.learn(total_timesteps=100_000_000,callback=eval_callback)
+    # model.learn(total_timesteps=1_000_000)
     model.save(save_path)
     
     env = env1D()
     obs = env.reset()
     evaluate_policy(model, env, n_eval_episodes=10, render=True)
+
+    # terminal command: tensorboard --logdir={log_path}
+    # tensorboard --logdir='Training/Logs/PPO_5/'
 

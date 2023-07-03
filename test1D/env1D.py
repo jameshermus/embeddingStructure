@@ -45,6 +45,8 @@ class env1D(Env):
         state = self.robot.get_observation(self)
         f, extraCost = self.robot.get_force(state, action, self.time)
 
+        self.prev_x_dot = self.x_dot
+
         # Dynamics
         m = self.robot.m
         self.x_dot = self.x_dot + (1/m) * f * self.timeStep
@@ -64,7 +66,9 @@ class env1D(Env):
         sigma = 0.2
 
         # Evaluate the probability density function at each x position
-        reward = norm.pdf(self.x, loc=self.target, scale=sigma)[0] # - 0.1*np.linalg.norm(self.x_dot)**2
+        # reward = norm.pdf(self.x, loc=self.target, scale=sigma)[0]  
+        reward = - np.linalg.norm(self.x-self.target)**2  - 0.001*np.linalg.norm(self.prev_x_dot-self.x_dot)**2
+        # - 0.1*np.linalg.norm(self.x_dot)**2
 
         # tolerance_x = 0.02
         # tolerance_x_dot = 0.002
