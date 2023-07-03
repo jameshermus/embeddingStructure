@@ -23,7 +23,7 @@ computationType = 'Learn'
 
 saveName = 'test1D'
 
-if( computationType == 'EvaluatePreLearning' ):
+if( computationType == 'EvaluatePreLearning'):
 # Look at it play untrained
     env = env1D()
     obs = env.reset()
