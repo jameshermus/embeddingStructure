@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
+from gym.spaces import Discrete, Box, Dict, Tuple, MultiBinary, MultiDiscrete
 import os
 
 from gym.spaces import Box
@@ -31,13 +32,18 @@ class controller_f(controller):
         super().__init__()
 
     def define_spaces(self):
-        action_space = Box(-100,100,shape=(1,))         
+        action_space = Discrete(2)
+        # action_space = Box(-100,100,shape=(1,))         
         observation_space = Box(low = np.array([[-1],[2]],dtype=np.float32),
                                high = np.array([[-4000],[4000]],dtype=np.float32),shape=(2,1)) 
         return action_space, observation_space
 
     def get_force(self, state, action, time):
-        f = action
+        if(action == 0):
+            f = 100
+        elif(action == 1):
+            f = -100
+        # f = action
         extraCost = 0
         return f, extraCost
     
