@@ -23,10 +23,6 @@ class env1D(Env):
         self.time = 0
         self.fig = plt.figure()
         self.m = 1
-        
-        self.x = np.array([0.], dtype=np.float32)
-        self.x_dot = np.array([0.], dtype=np.float32)
-        self.target = np.array([0.5], dtype=np.float32)
 
         # Add panda, table, box, and object
         self.robot = controller_f()
@@ -34,9 +30,14 @@ class env1D(Env):
         # self.robot = controller_submovement()
 
         self.action_space, self.observation_space = self.robot.define_spaces()
+
+        self.x = np.array([0.], dtype=np.float32)
+        self.x_dot = np.array([0.], dtype=np.float32)
+        # self.target = np.array([0.5], dtype=np.float32)
+        self.target = self.observation_space.sample()[2]
         
         self.timeStep = 1/750
-        self.timeMax = 1.0#0.2
+        self.timeMax = 1.0 #0.2
 
         pass
 
@@ -67,13 +68,13 @@ class env1D(Env):
 
         # Evaluate the probability density function at each x position
         # reward = norm.pdf(self.x, loc=self.target, scale=sigma)[0]  
-        # reward = - np.linalg.norm(self.x-self.target)**2  #- 0.001*np.linalg.norm(self.prev_x_dot-self.x_dot)**2
+        # reward = - np.linalg.norm(self.x-self.target)**2  - 0.001*np.linalg.norm(self.prev_x_dot-self.x_dot)**2
         # - 0.1*np.linalg.norm(self.x_dot)**2
 
-        tolerance_x = 0.001
+        self.tolerance_x = 0.01
         tolerance_x_dot = 0.002
 
-        if (abs(self.target - self.x) < tolerance_x):#& (abs(self.x_dot) < tolerance_x_dot):
+        if (abs(self.target - self.x) < self.tolerance_x):#& (abs(self.x_dot) < tolerance_x_dot):
             reward = 1
         else:
             reward = 0
@@ -110,6 +111,9 @@ class env1D(Env):
             # X-Y position of robot
             self.fig.clear()
             plt.plot(self.x,0,'k.',markersize=30)
+            plt.plot([0.0,0.0],[-0.1,0.1],'k')
+            plt.plot([self.target-self.tolerance_x,self.target-self.tolerance_x],[-0.1,0.1],'k')
+            plt.plot([self.target+self.tolerance_x,self.target+self.tolerance_x],[-0.1,0.1],'k')
             plt.title(format(self.time, ".2f"))
             # plt.ylabel('x')
             # plt.ylabel('y')
@@ -123,6 +127,7 @@ class env1D(Env):
         self.time = 0 # Reset time
         self.x = np.array([0.], dtype=np.float32)
         self.x_dot = np.array([0.], dtype=np.float32)
+        self.target = self.observation_space.sample()[2]
         observation = self.robot.get_observation(self)
 
         return observation

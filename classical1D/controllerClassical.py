@@ -27,84 +27,6 @@ class controller(ABC):
 
         return observation
 
-class controller_f(controller):
-    def __init__(self):
-        super().__init__()
-
-    def define_spaces(self):
-        action_space = Discrete(2)
-        # action_space = Box(-100,100,shape=(1,))         
-        # observation_space = Box(low = np.array([[-1],[2]],dtype=np.float32),
-        #                        high = np.array([[-4000],[4000]],dtype=np.float32),shape=(2,1)) 
-        
-        # Obervation Space min and max
-        target_range = [0.2, 0.5]
-        position_range = [-1.0,2.0]
-        velocity_range = [-20,20]
-
-        observation_min = np.array([[position_range[0]],[velocity_range[0]],[target_range[0]]],dtype=np.float32)
-        observation_max = np.array([[position_range[1]],[velocity_range[1]],[target_range[1]]],dtype=np.float32)
-
-        observation_space = Box(low = observation_min, high=observation_max,shape=(3,1)) 
-
-        return action_space, observation_space
-
-    def get_force(self, state, action, time):
-        if(action == 0):
-            f = 100
-        elif(action == 1):
-            f = -100
-        # f = action
-        extraCost = 0
-        return f, extraCost
-    
-    def get_observation(self,env):
-        # return np.array([env.x, env.x_dot])
-        return np.array([env.x, env.x_dot,env.target])
-
-
-class controller_x0(controller):
-    def __init__(self):
-        super().__init__()
-
-    def define_spaces(self):
-        action_space = Box(-1,2,shape=(1,)) 
-        # observation_space = Box(low = np.array([[-1],[2]],dtype=np.float32),
-        #                         high = np.array([[-20],[20]],dtype=np.float32),shape=(2,1))
-        
-        # Obervation Space min and max
-        target_range = [0.2, 0.5]
-        position_range = [-1.0,2.0]
-        velocity_range = [-20,20]
-
-        observation_min = np.array([[position_range[0]],[velocity_range[0]],[target_range[0]]],dtype=np.float32)
-        observation_max = np.array([[position_range[1]],[velocity_range[1]],[target_range[1]]],dtype=np.float32)
-
-        observation_space = Box(low = observation_min, high=observation_max,shape=(3,1)) 
-
-        return action_space, observation_space
-
-    def get_force(self, state, action, time):
-
-        x = state[0]
-        x_dot = state[1]
-
-        x0 = action[0]
-        x0_dot = 0 # action[1]
-
-        zeta = 1
-        wn = 50
-        k = wn**2*self.m
-        b = 2*zeta*wn*self.m
-        
-        f = k*(x0-x) + b*(x0_dot - x_dot)
-        extraCost = 0
-
-        return f, extraCost
-    
-    def get_observation(self,env):
-        return np.array([env.x, env.x_dot,env.target])
-
 class controller_submovement(controller):
     def __init__(self):
         super().__init__()
@@ -126,16 +48,16 @@ class controller_submovement(controller):
                                amplitude_range[1]],dtype=np.float32)
 
         # Obervation Space min and max
-        target_range = [0.2, 0.5]
+        # target_range = [-0.3, 0.3]
         position_range = [-1.0,2.0]
         velocity_range = [-20,20]
 
-        observation_min = np.array([position_range[0],velocity_range[0],target_range[0]],dtype=np.float32)
-        observation_max = np.array([position_range[1],velocity_range[1],target_range[1]],dtype=np.float32)
+        observation_min = np.array([position_range[0],velocity_range[0]],dtype=np.float32)
+        observation_max = np.array([position_range[1],velocity_range[1]],dtype=np.float32)
 
         action_space = Box(low = action_min, high=action_max,shape=(3,)) 
-        observation_space = Box(low = observation_min, high=observation_max,shape=(3,1)) 
-
+        observation_space = Box(low = np.array([[-1],[2]],dtype=np.float32),
+                                high = np.array([[-20],[20]],dtype=np.float32),shape=(2,1))
         return action_space, observation_space
     
     def get_force(self, state, action, time):

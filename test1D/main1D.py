@@ -48,7 +48,7 @@ if( computationType == 'EvaluatePreLearning'):
 if( computationType == 'hardcode'):
 
     # Add code to import a model
-    saveName = 'PPO_f_Learn.zip'
+    saveName = 'PPO_f_Learn/best_model.zip'
     log_path = os.path.join('Training','Logs')
     save_path = os.path.join('Training','Saved_Models', saveName)
     model = PPO.load(save_path)
@@ -134,6 +134,8 @@ if(computationType ==  'Learn'):
                                  best_model_save_path=save_path, 
                                  verbose=1)
     model.learn(total_timesteps=1_000_000_000,callback=eval_callback)
+    # model.learn(total_timesteps=50_000)
+
     model.save(save_path)
 
     evaluate_policy(model, env, n_eval_episodes=10, render=True)
