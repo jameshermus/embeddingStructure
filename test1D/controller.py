@@ -156,7 +156,7 @@ class controller_submovement(controller):
         return f, extraCost
     
     def get_observation(self,env):
-        return np.array([env.x, env.x_dot])
+        return np.array([env.x, env.x_dot,env.target,])
     
     def getZFT(self,action,time): # Later this will become get primatives
         # Because this function changes self.onGoingSubmovements only call it with step==True when using step function

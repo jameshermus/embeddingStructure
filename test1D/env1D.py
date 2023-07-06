@@ -25,8 +25,8 @@ class env1D(Env):
         self.m = 1
 
         # Add panda, table, box, and object
-        self.robot = controller_f()
-        # self.robot = controller_x0()
+        # self.robot = controller_f()
+        self.robot = controller_x0()
         # self.robot = controller_submovement()
 
         self.action_space, self.observation_space = self.robot.define_spaces()
@@ -68,16 +68,16 @@ class env1D(Env):
 
         # Evaluate the probability density function at each x position
         # reward = norm.pdf(self.x, loc=self.target, scale=sigma)[0]  
-        # reward = - np.linalg.norm(self.x-self.target)**2  - 0.001*np.linalg.norm(self.prev_x_dot-self.x_dot)**2
+        reward = - np.linalg.norm(self.x-self.target)**2  - 0.001*np.linalg.norm(self.prev_x_dot-self.x_dot)**2
         # - 0.1*np.linalg.norm(self.x_dot)**2
 
         self.tolerance_x = 0.01
-        tolerance_x_dot = 0.002
+        # tolerance_x_dot = 0.002
 
-        if (abs(self.target - self.x) < self.tolerance_x):#& (abs(self.x_dot) < tolerance_x_dot):
-            reward = 1
-        else:
-            reward = 0
+        # if (abs(self.target - self.x) < self.tolerance_x):#& (abs(self.x_dot) < tolerance_x_dot):
+        #     reward = 1
+        # else:
+        #     reward = 0
 
         # tmp = np.zeros((100,))
         # for i in range(-1,2,100):
