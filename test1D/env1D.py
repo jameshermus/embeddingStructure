@@ -45,16 +45,16 @@ class env1D(Env):
 
     def step(self,action):
 
-        state = self.robot.get_observation(self)
-        f, extraCost = self.robot.get_force(state, action, self.time)
 
-        self.prev_x_dot = self.x_dot
+        # self.prev_x_dot = self.x_dot
 
-        # Dynamics
-        m = self.robot.m
-        self.x_dot = self.x_dot + (1/m) * f * self.timeStep
-        self.x = self.x + self.x_dot * self.timeStep
-        self.time += self.timeStep
+        # Step Dynamics (update self.x_dot, self.x, self.time)
+        extraCost = self.stepDynamics(action)
+
+        actionNull = 0
+        downSampleFactor = 15
+        for i in range(downSampleFactor):
+            self.stepDynamics(actionNull)
 
         # Observation
         observation = self.robot.get_observation(self)
@@ -74,7 +74,7 @@ class env1D(Env):
         # - 0.1*np.linalg.norm(self.x_dot)**2
 
         if (abs(self.target - self.x) < self.tolerance_x):#& (abs(self.x_dot) < tolerance_x_dot):
-            reward = 1
+            reward = 5
         else:
             reward = 0
 
@@ -135,32 +135,11 @@ class env1D(Env):
     
     def close(self):
         pass
-    # def SemiImplicitEuler(self, func, tspan, y0, options):
-    #     # Semi-implicit Euler Integrator
-    #     # func: function @(t,y), e.g. f=@(t,y)(t+y);
-    #     # tspan: time span [t0, tf]
-    #     # y0: initial condition of y = [q0; Dq0]
-    #     # options: any additional options
-    
-    #     dt = self.timeStep
-    #     t = np.arange(tspan[0], tspan[1] + dt, dt)
-    #     y = np.zeros((len(y0), len(t)))
-    #     y[:, 0] = y0
-    
-    #     nq = len(y0) // 2
-    #     q = np.zeros((nq, len(t)))
-    #     Dq = np.zeros((nq, len(t)))
-    #     q[:, 0] = y0[:nq]
-    #     Dq[:, 0] = y0[nq:]
-    
-    #     # semi-implicit Euler integration
-    #     for i in range(len(t) - 1):
-    #         DDy = func(t[i], y[:, i])
-    #         Dq[:, i + 1] = Dq[:, i] + dt * DDy[nq:]
-    #         q[:, i + 1] = q[:, i] + dt * Dq[:, i + 1]
-    #         y[:, i + 1] = np.concatenate((q[:, i + 1], Dq[:, i + 1]))
-    
-    #     t_list = t.reshape(-1, 1)
-    #     x_list = y.T
-    
-    #     return t_list, x_list
+
+    def stepDynamics(self,action):   
+        state = self.robot.get_observation(self)
+        f, extraCost = self.robot.get_force(state, action, self.time)
+        self.x_dot = self.x_dot + (1/self.robot.m) * f * self.timeStep
+        self.x = self.x + self.x_dot * self.timeStep
+        self.time += self.timeStep
+        return extraCost

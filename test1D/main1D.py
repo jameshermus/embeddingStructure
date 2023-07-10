@@ -15,13 +15,14 @@ import matplotlib.pyplot as plt
 
 from sb3_contrib import RecurrentPPO
 
+# tensorboard --logdir='Training/Logs'  
+
 
 # Ideas:
 # - Read about vectorize
 # - Normalize?
 # - Recurrent nerual networks?
 # - Liquid nerual networks
-# - 
 
 # http://localhost:6006/
 
@@ -69,7 +70,7 @@ if( computationType == 'classical'):
     while not done:
         action = modelClassical(env,obs)
         obs, reward, done, info = env.step(action)
-        if count >= 2:
+        if count >= 1:
             env.render(mode = 'human')
         count += 1
         score += reward
@@ -163,8 +164,8 @@ if(computationType ==  'Learn'):
     env = env1D()
     obs = env.reset()
 
-    # model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
-    model = RecurrentPPO("MlpLstmPolicy",env,verbose=1,tensorboard_log=log_path)
+    model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
+    # model = RecurrentPPO("MlpLstmPolicy",env,verbose=1,tensorboard_log=log_path)
 
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold=700, verbose=1)
     eval_callback = EvalCallback(env, 
@@ -198,7 +199,7 @@ if(computationType ==  'Learn - Vectorized'):
     vec_env = DummyVecEnv(env_fns)
     vec_env = VecNormalize(vec_env)
     model = PPO('MlpPolicy',vec_env,verbose=1,tensorboard_log=log_path)
-    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-18, verbose=1)
+    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=700, verbose=1)
     eval_callback = EvalCallback(vec_env, 
                                  callback_on_new_best=stop_callback, 
                                  eval_freq=20_000, 

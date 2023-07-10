@@ -17,7 +17,7 @@ class controller(ABC):
         return action_space, obseration_space
 
     @abstractmethod
-    def get_force(state, action,time):
+    def get_force(state,action,time):
         # Each implamentation must define the get_torque method. This method determins the torque to be produced
         # at each time step.
         return f, extraCost
