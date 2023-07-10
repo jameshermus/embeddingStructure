@@ -176,7 +176,7 @@ class controller_submovement(controller):
         # duration = action[1]
         # amplitude = action[2]
 
-        A_low = 0.025
+        A_low = 0.01
         A_high = 0.2
         D_low = 0.025
 

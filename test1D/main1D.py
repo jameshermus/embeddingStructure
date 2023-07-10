@@ -15,9 +15,9 @@ import matplotlib.pyplot as plt
 # http://localhost:6006/
 
 # computationType = 'EvaluatePreLearning'
-computationType = 'Learn'
+# computationType = 'Learn'
 # computationType = 'Learn - Vectorized'
-# computationType = 'hardcode'
+computationType = 'hardcode'
 # computationType = 'hardcode - submovement'
 # computationType = 'Evaluate'
 
