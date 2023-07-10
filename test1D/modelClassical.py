@@ -6,8 +6,9 @@ def modelClassical(env,obs):
     x = obs[0,0]
     x_dot = obs[1,0]
     target = obs[2,0]
-    env.robot.onGoingSubmovements 
-    x_0_max, _ = env.robot.sumOnGoingSubmovements(env.time+env.robot.D_high)
+    x_0_max = obs[3,0]
+    # env.robot.onGoingSubmovements 
+    # x_0_max, _ = env.robot.sumOnGoingSubmovements(env.time+env.robot.D_high)
 
     error = target - x_0_max
 
