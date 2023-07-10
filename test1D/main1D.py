@@ -3,6 +3,7 @@
 import os,time, sys
 import numpy as np
 from env1D import env1D
+from modelClassical import modelClassical
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv 
 from stable_baselines3.common.vec_env import VecFrameStack # used to vectorize enviornment
@@ -15,9 +16,10 @@ import matplotlib.pyplot as plt
 # http://localhost:6006/
 
 # computationType = 'EvaluatePreLearning'
-# computationType = 'Learn'
+computationType = 'Learn'
 # computationType = 'Learn - Vectorized'
-computationType = 'hardcode'
+# computationType = 'hardcode'
+# computationType = 'classical'
 # computationType = 'hardcode - submovement'
 # computationType = 'Evaluate'
 
@@ -39,6 +41,25 @@ if( computationType == 'EvaluatePreLearning'):
 
         obs, reward, done, info = env.step(action)
         if count >= 30:
+            env.render(mode = 'human')
+        count += 1
+        score += reward
+        print('Episode:{} Score:{} position{}, time:{}, action:{}'.format(episode, score, obs[0], env.time,action))
+    env.close()
+
+if( computationType == 'classical'):
+# Look at it play untrained
+    env = env1D()
+    obs = env.reset()
+    score = 0
+    done = 0
+    episode = 0
+    count = 0
+    env.render(mode = 'human')
+    while not done:
+        action = modelClassical(env,obs)
+        obs, reward, done, info = env.step(action)
+        if count >= 2:
             env.render(mode = 'human')
         count += 1
         score += reward

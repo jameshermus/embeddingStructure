@@ -115,7 +115,6 @@ class controller_submovement(controller):
         self.D_high = 0.025
 
 
-
     def define_spaces(self):
         # Action Space Ranges min and max
         actionSelection_range = [0.0, 1.0]
@@ -178,26 +177,25 @@ class controller_submovement(controller):
 
         A_low = 0.01
         A_high = 0.2
-        D_low = 0.025
 
         if(action == 0):
             actionSelection = False
         elif(action == 1):
             actionSelection = True
-            duration = D_low
-            amplitude = A_low
+            duration = self.D_high
+            amplitude = A_high
         elif(action == 2):
             actionSelection = True
-            duration = D_low
-            amplitude = A_high
+            duration = self.D_high
+            amplitude = A_low
         elif(action == 3):
             actionSelection = True
-            duration = D_low
-            amplitude = -A_low
+            duration = self.D_high
+            amplitude = -A_high
         elif(action == 4):
             actionSelection = True
-            duration = D_low
-            amplitude = -self.D_high
+            duration = self.D_high
+            amplitude = -A_low
 
         extraCost = 0
         
