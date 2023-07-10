@@ -13,6 +13,16 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold
 import matplotlib.pyplot as plt
 
+from sb3_contrib import RecurrentPPO
+
+
+# Ideas:
+# - Read about vectorize
+# - Normalize?
+# - Recurrent nerual networks?
+# - Liquid nerual networks
+# - 
+
 # http://localhost:6006/
 
 # computationType = 'EvaluatePreLearning'
@@ -153,7 +163,9 @@ if(computationType ==  'Learn'):
     env = env1D()
     obs = env.reset()
 
-    model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
+    # model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
+    model = RecurrentPPO("MlpLstmPolicy",env,verbose=1,tensorboard_log=log_path)
+
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold=700, verbose=1)
     eval_callback = EvalCallback(env, 
                                  callback_on_new_best=stop_callback, 
@@ -184,6 +196,7 @@ if(computationType ==  'Learn - Vectorized'):
 
     # Vectorize the environments
     vec_env = DummyVecEnv(env_fns)
+    vec_env = VecNormalize(vec_env)
     model = PPO('MlpPolicy',vec_env,verbose=1,tensorboard_log=log_path)
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold=-18, verbose=1)
     eval_callback = EvalCallback(vec_env, 

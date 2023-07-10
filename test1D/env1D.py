@@ -37,7 +37,7 @@ class env1D(Env):
         self.target = self.observation_space.sample()[2]
         
         self.timeStep = 1/750
-        self.timeMax = 0.5 #0.2
+        self.timeMax = 0.75 #0.2
         self.tolerance_x = 0.05
         self.tolerance_x_dot = 0.002
 
