@@ -110,6 +110,11 @@ class controller_submovement(controller):
         super().__init__()
         self.onGoingSubmovements = []
         self.initial_ib_b = 0
+        self.thresholdLatency = 10
+        self.latency = self.thresholdLatency + 1
+        self.D_high = 0.025
+
+
 
     def define_spaces(self):
         # Action Space Ranges min and max
@@ -117,24 +122,27 @@ class controller_submovement(controller):
         duration_range = [0.02, 0.2]
         amplitude_range = [0.1, 0.8]
 
-        action_min = np.array([actionSelection_range[0],
-                               duration_range[0], 
-                               amplitude_range[0]],dtype=np.float32)
+        # action_min = np.array([actionSelection_range[0],
+        #                        duration_range[0], 
+        #                        amplitude_range[0]],dtype=np.float32)
         
-        action_max = np.array([actionSelection_range[1],
-                               duration_range[1], 
-                               amplitude_range[1]],dtype=np.float32)
+        # action_max = np.array([actionSelection_range[1],
+        #                        duration_range[1], 
+        #                        amplitude_range[1]],dtype=np.float32)
+        # action_space = Box(low = action_min, high=action_max,shape=(3,)) 
+
 
         # Obervation Space min and max
         target_range = [0.2, 0.5]
-        position_range = [-1.0,2.0]
-        velocity_range = [-20,20]
+        position_range = [-100,100]#[-1.0,2.0]
+        velocity_range = [-1000,1000]#[-20,20]
+        x0fhat_range = [-1000,1000]
 
-        observation_min = np.array([position_range[0],velocity_range[0],target_range[0]],dtype=np.float32)
-        observation_max = np.array([position_range[1],velocity_range[1],target_range[1]],dtype=np.float32)
+        observation_min = np.array([[position_range[0]],[velocity_range[0]],[target_range[0]],[x0fhat_range[0]]],dtype=np.float32)
+        observation_max = np.array([[position_range[1]],[velocity_range[1]],[target_range[1]],[x0fhat_range[1]]],dtype=np.float32)
 
-        action_space = Box(low = action_min, high=action_max,shape=(3,)) 
-        observation_space = Box(low = observation_min, high=observation_max,shape=(3,1)) 
+        action_space = Discrete(5) # action can take values: 0, 1, 2, 3, 4
+        observation_space = Box(low = observation_min, high=observation_max,shape=(4,1)) 
 
         return action_space, observation_space
     
@@ -151,21 +159,45 @@ class controller_submovement(controller):
         b = 2*zeta*wn*self.m
         
         f = k*(x0-x) + b*(x0_dot - x_dot)
-        extraCost = 0
 
         return f, extraCost
     
     def get_observation(self,env):
-        return np.array([env.x, env.x_dot,env.target,])
+        xfhat_0b_b, _ = self.sumOnGoingSubmovements(env.time + self.D_high) # Estiamte final position after final submovement ends
+        xfhat_0b_b = np.array([xfhat_0b_b], dtype='float32')
+        return np.array([env.x, env.x_dot,env.target,xfhat_0b_b])
     
     def getZFT(self,action,time): # Later this will become get primatives
         # Because this function changes self.onGoingSubmovements only call it with step==True when using step function
         # in all other cases leave step == false
 
         # Import and scale all variables are originally 0-1
-        actionSelection =  True if action[0]>0.5 else False
-        duration = action[1]
-        amplitude = action[2]
+        # actionSelection =  True if action[0]>0.5 else False
+        # duration = action[1]
+        # amplitude = action[2]
+
+        A_low = 0.025
+        A_high = 0.2
+        D_low = 0.025
+
+        if(action == 0):
+            actionSelection = False
+        elif(action == 1):
+            actionSelection = True
+            duration = D_low
+            amplitude = A_low
+        elif(action == 2):
+            actionSelection = True
+            duration = D_low
+            amplitude = A_high
+        elif(action == 3):
+            actionSelection = True
+            duration = D_low
+            amplitude = -A_low
+        elif(action == 4):
+            actionSelection = True
+            duration = D_low
+            amplitude = -self.D_high
 
         extraCost = 0
         
@@ -173,6 +205,11 @@ class controller_submovement(controller):
         if actionSelection: # Applied only when step == true
             self.onGoingSubmovements.append([duration, amplitude, time])
             extraCost = -10
+            if (self.latency <= self.thresholdLatency):
+                extraCost += -100
+            self.latency = 0 # Reset latence after adding extra cost
+        else:
+            self.latency += 1
 
         # Remove submovements which are no longer active **ADD LATER TO MAKE MORE EFFICIENT
         # self.onGoingSubmovements = [submov for submov in self.onGoingSubmovements if (submov[0]+submov[3]) >= time]

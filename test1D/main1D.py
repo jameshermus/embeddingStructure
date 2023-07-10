@@ -15,9 +15,9 @@ import matplotlib.pyplot as plt
 # http://localhost:6006/
 
 # computationType = 'EvaluatePreLearning'
-# computationType = 'Learn'
+computationType = 'Learn'
 # computationType = 'Learn - Vectorized'
-computationType = 'hardcode'
+# computationType = 'hardcode'
 # computationType = 'hardcode - submovement'
 # computationType = 'Evaluate'
 
@@ -42,7 +42,7 @@ if( computationType == 'EvaluatePreLearning'):
             env.render(mode = 'human')
         count += 1
         score += reward
-        print('Episode:{} Score:{} position{}, time{}'.format(episode, score, obs[0], env.time))
+        print('Episode:{} Score:{} position{}, time:{}, action:{}'.format(episode, score, obs[0], env.time,action))
     env.close()
 
 if( computationType == 'hardcode'):
@@ -66,8 +66,14 @@ if( computationType == 'hardcode'):
     while not done:
         # action = np.array([0.5], dtype=np.float32)
         action = model.predict(obs,deterministic=False)[0] # Use trained model
+        # if count == 0:
+        #     action = 2
+        # elif count == 55:
+        #     action = 2
+        # else:
+        #     action = 0
         obs, reward, done, info = env.step(action)
-        f[count],_ = env.robot.get_force(obs, action, env.time) # action[0]
+        # f[count],_ = env.robot.get_force(obs, action, env.time) # action[0]
         x[count] = obs[0]
         score += reward
         print('Episode:{} Score:{}'.format(episode, score))
@@ -81,9 +87,9 @@ if( computationType == 'hardcode'):
     plt.plot(timeVec,x)
     plt.show()
 
-    plt.figure()
-    plt.plot(timeVec,f)
-    plt.show()
+    # plt.figure()
+    # plt.plot(timeVec,f)
+    # plt.show()
     print('test')
 
 if( computationType == 'hardcode - submovement'):
