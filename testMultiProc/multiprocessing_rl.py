@@ -78,68 +78,44 @@ def main():
     Because we use vectorized environment (SubprocVecEnv), the actions sent to the wrapped env must be an array (one action per process). Also, observations, rewards and dones are arrays.
     """
 
-    env_id = "envMultiProc"
-    num_cpu = 4  # Number of processes to use
+    env_id = "CartPole-v1"
+    num_cpu = 10  # Number of processes to use
     # Create the vectorized environment
-    # env = DummyVecEnv([make_env(env_id, i) for i in range(num_cpu)])
-    env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)])
+    env_dummy = DummyVecEnv([make_env(env_id, i) for i in range(num_cpu)])
+    # env_subprocVec = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)])
+    env_makeVec = make_vec_env(env_id, n_envs=num_cpu)
 
-    model = A2C("MlpPolicy", env, verbose=0)
+    model = A2C("MlpPolicy", env_id, verbose=0)
+    model_dummy = A2C("MlpPolicy", env_dummy, verbose=0)
+    # model_subprocVec = A2C("MlpPolicy", vec_subprocVec, verbose=0)
+    model_makeVec = A2C("MlpPolicy", env_makeVec, verbose=0)
 
-    """Stable-Baselines3 provides you with make_vec_env() helper which does exactly the previous steps for you:"""
+    n_timesteps = 200_000
 
-    # By default, we use a DummyVecEnv as it is usually faster (cf doc)
-    vec_env = make_vec_env(env_id, n_envs=num_cpu)
-
-    model = A2C("MlpPolicy", vec_env, verbose=0)
-
-    """Let's evaluate the un-trained agent, this should be a random agent."""
-
-    # We create a separate environment for evaluation
-    eval_env = gym.make(env_id)
-
-    # Random Agent, before training
-    mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
-    print(f"Mean reward: {mean_reward} +/- {std_reward:.2f}")
-
-    """## Multiprocess VS Single Process Training
-
-    Here, we will compare time taken using one vs 4 processes, it should take ~30s in total.
-    """
-
-    n_timesteps = 25000
-
-    # Multiprocessed RL Training
+    # Single Process RL Training
     start_time = time.time()
     model.learn(n_timesteps)
     total_time_multi = time.time() - start_time
+    print(f"Took {total_time_multi:.2f}s for single process version - {n_timesteps / total_time_multi:.2f} FPS")
 
-    print(
-        f"Took {total_time_multi:.2f}s for multiprocessed version - {n_timesteps / total_time_multi:.2f} FPS"
-    )
-
-    # Single Process RL Training
-    single_process_model = A2C("MlpPolicy", env_id, verbose=0)
-
+    # Dummy RL Training
     start_time = time.time()
-    single_process_model.learn(n_timesteps)
-    total_time_single = time.time() - start_time
+    model_dummy.learn(n_timesteps)
+    total_time_multi = time.time() - start_time
+    print(f"Took {total_time_multi:.2f}s for dummy version - {n_timesteps / total_time_multi:.2f} FPS")
+    
+    # # subprocVec RL Training
+    # start_time = time.time()
+    # model_subprocVec.learn(n_timesteps)
+    # total_time_multi = time.time() - start_time
+    # print(f"Took {total_time_multi:.2f}s for subprocVec version - {n_timesteps / total_time_multi:.2f} FPS")
 
-    print(
-        f"Took {total_time_single:.2f}s for single process version - {n_timesteps / total_time_single:.2f} FPS"
-    )
-
-    print(
-        "Multiprocessed training is {:.2f}x faster!".format(
-            total_time_single / total_time_multi
-        )
-    )
-
-    # Evaluate the trained agent
-    mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
-    print(f"Mean reward: {mean_reward} +/- {std_reward:.2f}")
-
-
+    # makeVec RL Training
+    start_time = time.time()
+    model_makeVec.learn(n_timesteps)
+    total_time_multi = time.time() - start_time
+    print(f"Took {total_time_multi:.2f}s for makeVec version - {n_timesteps / total_time_multi:.2f} FPS")
+ 
 
 if __name__ == '__main__':
     main()
