@@ -6,25 +6,20 @@ from env1D import env1D
 import gymnasium as gym
 from modelClassical import modelClassical
 from stable_baselines3 import PPO, A2C
-from stable_baselines3.common.vec_env import DummyVecEnv , SubprocVecEnv
-from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from stable_baselines3.common.utils import set_random_seed
-from typing import Callable
-from stable_baselines3.common.vec_env import VecFrameStack # used to vectorize enviornment
-from stable_baselines3.common.vec_env import VecNormalize
-from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold
+from typing import Callable
 import matplotlib.pyplot as plt
 
 from sb3_contrib import RecurrentPPO
 
 # tensorboard --logdir='Training/Logs'  
 
-# from stable_baselines3.common.env_checker import check_env
-# env = env1D()
-# check_env(env)
-
+from stable_baselines3.common.env_checker import check_env
+env = env1D('x0')
+check_env(env)
 
 # Ideas:
 # - Read about vectorize

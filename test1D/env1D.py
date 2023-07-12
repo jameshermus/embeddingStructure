@@ -16,32 +16,59 @@ from scipy.stats import norm
 from controller import controller, controller_f, controller_x0, controller_submovement
 
 class env1D(gym.Env):
-    def __init__(self,render_mode = None):
-        super().__init__()
+    def __init__(self,controllerType,render_mode = None):
+        super(env1D, self).__init__()
+        
         self.render_mode = render_mode
+        
+        if self.render_mode == 'human':
+            self.fig = plt.figure()
+        else:
+            self.fig = []
 
-        self.time = 0
-        self.fig = plt.figure()
-        self.m = 1
+        self.time = np.float32(0.0)
 
         # Add panda, table, box, and object
-        # self.robot = controller_f()
-        # self.robot = controller_x0()
-        self.robot = controller_submovement()
+        if(controllerType == 'f'):
+            self.robot = controller_f()
+        elif(controllerType == 'x0'):
+            self.robot = controller_x0()
+        elif(controllerType == 'submovement'):
+            self.robot = controller_submovement()
+        else:
+            raise Exception('Invalid controller type')
+
 
         self.action_space, self.observation_space = self.robot.define_spaces()
 
-        self.x = np.array([0.], dtype=np.float32)
-        self.x_dot = np.array([0.], dtype=np.float32)
-        # self.target = np.array([0.5], dtype=np.float32)
+        self.x = np.float32(0.0)
+        self.x_dot = np.float32(0.0)
         self.target = self.observation_space.sample()[2]
         
-        self.timeStep = 1/750
-        self.timeMax = 0.75 #0.2
+        self.timeStep = np.float32(1/750)
+        self.timeMax = 0.75
         self.tolerance_x = 0.05
         self.tolerance_x_dot = 0.002
 
         pass
+
+
+    def reset(self, seed=None, options=None):
+
+        super().reset(seed=seed, options=options)
+        
+        self.time = np.float32(0) # Reset time
+        self.x = np.float32(0.0)
+        self.x_dot = np.float32(0.0)
+        self.target = self.observation_space.sample()[2]
+        observation = self.robot.get_observation(self)
+
+        if self.render_mode == "human":
+            self._render_frame()
+
+        info = {} # Empty dict
+        
+        return observation, info
 
     def step(self,action):
 
@@ -61,9 +88,11 @@ class env1D(gym.Env):
             
         # Let simulation run a fixed number of time steps
         if self.time >= self.timeMax:
-            done = True
+            terminated = True
         else: 
-            done = False
+            terminated = False
+
+        truncated = False
 
         # Define the target position and sigma
         # sigma = 0.075 
@@ -74,7 +103,7 @@ class env1D(gym.Env):
         # - 0.1*np.linalg.norm(self.x_dot)**2
 
         if (abs(self.target - self.x) < self.tolerance_x):#& (abs(self.x_dot) < tolerance_x_dot):
-            reward = 5
+            reward = 1
         else:
             reward = 0
 
@@ -108,7 +137,7 @@ class env1D(gym.Env):
         if self.render_mode == "human":
             self._render_frame()
      
-        return observation, reward, done, info
+        return observation, reward, terminated, truncated, info
 
     def render(self):
         if self.render_mode == 'human':
@@ -128,23 +157,6 @@ class env1D(gym.Env):
         plt.xlim([-0.1,1.0])
         plt.pause(0.0001)
         # plt.show()
-
-    def reset(self, seed=None, options=None):
-
-        super().reset(seed=seed, options=options)
-        
-        self.time = 0 # Reset time
-        self.x = np.array([0.], dtype=np.float32)
-        self.x_dot = np.array([0.], dtype=np.float32)
-        self.target = self.observation_space.sample()[2]
-        observation = self.robot.get_observation(self)
-
-        if self.render_mode == "human":
-            self._render_frame()
-
-        info = []
-        
-        return observation, info
     
     def close(self):
         pass
