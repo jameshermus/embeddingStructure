@@ -1,7 +1,5 @@
 # Import GYM stuff
-import gym
-from gym import Env
-from gym.spaces import Discrete, Box, Dict, Tuple, MultiBinary, MultiDiscrete
+import gymnasium as gym
 from scipy.spatial.transform import Rotation as R
 
 # Import helpers
@@ -17,8 +15,10 @@ from scipy.stats import norm
 
 from controller import controller, controller_f, controller_x0, controller_submovement
 
-class env1D(Env):
-    def __init__(self):
+class env1D(gym.Env):
+    def __init__(self,render_mode = None):
+        super().__init__()
+        self.render_mode = render_mode
 
         self.time = 0
         self.fig = plt.figure()
@@ -51,10 +51,10 @@ class env1D(Env):
         # Step Dynamics (update self.x_dot, self.x, self.time)
         extraCost = self.stepDynamics(action)
 
-        actionNull = 0
-        downSampleFactor = 15
-        for i in range(downSampleFactor):
-            self.stepDynamics(actionNull)
+        # actionNull = 0
+        # downSampleFactor = 15
+        # for i in range(downSampleFactor):
+        #     self.stepDynamics(actionNull)
 
         # Observation
         observation = self.robot.get_observation(self)
@@ -104,26 +104,34 @@ class env1D(Env):
             
         # Initialize info
         info = {}
+
+        if self.render_mode == "human":
+            self._render_frame()
      
         return observation, reward, done, info
 
-    def render(self, mode = 'human'):
-        if mode == 'human':
-            # X-Y position of robot
-            self.fig.clear()
-            plt.plot(self.x,0,'k.',markersize=30)
-            plt.plot([0.0,0.0],[-0.1,0.1],'k')
-            plt.plot([self.target-self.tolerance_x,self.target-self.tolerance_x],[-0.1,0.1],'k')
-            plt.plot([self.target+self.tolerance_x,self.target+self.tolerance_x],[-0.1,0.1],'k')
-            plt.title(format(self.time, ".2f"))
-            # plt.ylabel('x')
-            # plt.ylabel('y')
-            # plt.ylim([-0.5, 0.5])
-            plt.xlim([-0.1,1.0])
-            plt.pause(0.0001)
-            # plt.show()
+    def render(self):
+        if self.render_mode == 'human':
+            return self._render_frame()
+    
+    def _render_frame(self):
+        # X-Y position of robot
+        self.fig.clear()
+        plt.plot(self.x,0,'k.',markersize=30)
+        plt.plot([0.0,0.0],[-0.1,0.1],'k')
+        plt.plot([self.target-self.tolerance_x,self.target-self.tolerance_x],[-0.1,0.1],'k')
+        plt.plot([self.target+self.tolerance_x,self.target+self.tolerance_x],[-0.1,0.1],'k')
+        plt.title(format(self.time, ".2f"))
+        # plt.ylabel('x')
+        # plt.ylabel('y')
+        # plt.ylim([-0.5, 0.5])
+        plt.xlim([-0.1,1.0])
+        plt.pause(0.0001)
+        # plt.show()
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
+
+        super().reset(seed=seed, options=options)
         
         self.time = 0 # Reset time
         self.x = np.array([0.], dtype=np.float32)
@@ -131,7 +139,12 @@ class env1D(Env):
         self.target = self.observation_space.sample()[2]
         observation = self.robot.get_observation(self)
 
-        return observation
+        if self.render_mode == "human":
+            self._render_frame()
+
+        info = []
+        
+        return observation, info
     
     def close(self):
         pass

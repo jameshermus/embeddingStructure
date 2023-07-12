@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from gym.spaces import Discrete, Box, Dict, Tuple, MultiBinary, MultiDiscrete
+from gymnasium import spaces
 import os
 
 from gym.spaces import Box
@@ -140,8 +140,8 @@ class controller_submovement(controller):
         observation_min = np.array([[position_range[0]],[velocity_range[0]],[target_range[0]],[x0fhat_range[0]]],dtype=np.float32)
         observation_max = np.array([[position_range[1]],[velocity_range[1]],[target_range[1]],[x0fhat_range[1]]],dtype=np.float32)
 
-        action_space = Discrete(5) # action can take values: 0, 1, 2, 3, 4
-        observation_space = Box(low = observation_min, high=observation_max,shape=(4,1)) 
+        action_space = spaces.Discrete(5) # action can take values: 0, 1, 2, 3, 4
+        observation_space = spaces.Box(low = observation_min, high=observation_max,shape=(4,1)) 
 
         return action_space, observation_space
     

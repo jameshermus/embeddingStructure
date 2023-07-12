@@ -3,9 +3,13 @@
 import os,time, sys
 import numpy as np
 from env1D import env1D
+import gymnasium as gym
 from modelClassical import modelClassical
-from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import DummyVecEnv 
+from stable_baselines3 import PPO, A2C
+from stable_baselines3.common.vec_env import DummyVecEnv , SubprocVecEnv
+from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.utils import set_random_seed
+from typing import Callable
 from stable_baselines3.common.vec_env import VecFrameStack # used to vectorize enviornment
 from stable_baselines3.common.vec_env import VecNormalize
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -17,6 +21,10 @@ from sb3_contrib import RecurrentPPO
 
 # tensorboard --logdir='Training/Logs'  
 
+# from stable_baselines3.common.env_checker import check_env
+# env = env1D()
+# check_env(env)
+
 
 # Ideas:
 # - Read about vectorize
@@ -27,33 +35,29 @@ from sb3_contrib import RecurrentPPO
 # http://localhost:6006/
 
 # computationType = 'EvaluatePreLearning'
-computationType = 'Learn'
+# computationType = 'Learn' 
 # computationType = 'Learn - Vectorized'
 # computationType = 'hardcode'
 # computationType = 'classical'
 # computationType = 'hardcode - submovement'
 # computationType = 'Evaluate'
+computationType = 'Multiprocessing'
 
 saveName = 'test1D'
 
 if( computationType == 'EvaluatePreLearning'):
 # Look at it play untrained
-    env = env1D()
+    env = env1D(render_mode = 'human')
     obs = env.reset()
     score = 0
     done = 0
     episode = 0
-    count = 0
-    env.render(mode = 'human')
     while not done:
         action = env.action_space.sample()
         # action = np.array([100], dtype=np.float32)
         # action = np.array([0.5], dtype=np.float32)
 
         obs, reward, done, info = env.step(action)
-        if count >= 30:
-            env.render(mode = 'human')
-        count += 1
         score += reward
         print('Episode:{} Score:{} position{}, time:{}, action:{}'.format(episode, score, obs[0], env.time,action))
     env.close()
@@ -216,3 +220,71 @@ if(computationType ==  'Learn - Vectorized'):
     # terminal command: tensorboard --logdir={log_path}
     # tensorboard --logdir='Training/Logs/PPO_5/'
 
+if(computationType ==  'Multiprocessing'):
+
+    # Create a function that returns your custom environment
+    def make_env(rank: int, seed: int = 0) -> Callable:
+        """
+        Utility function for multiprocessed env.
+
+        :param env_id: (str) the environment ID
+        :param num_env: (int) the number of environment you wish to have in subprocesses
+        :param seed: (int) the inital seed for RNG
+        :param rank: (int) index of the subprocess
+        :return: (Callable)
+        """
+
+        def _init() -> gym.Env:
+            env = env1D()
+            env.reset(seed=seed + rank)
+            return env
+
+        set_random_seed(seed)
+        return _init
+    
+    num_cpu = 4  # Number of processes to use
+    # Create the vectorized environment
+    env = DummyVecEnv([make_env(i) for i in range(num_cpu)])
+
+    # env = SubprocVecEnv([make_env(i) for i in range(num_cpu)])
+    model = A2C("MlpPolicy", env, verbose=0)
+
+    # By default, we use a DummyVecEnv as it is usually faster (cf doc)
+    vec_env = make_vec_env(env_id, n_envs=num_cpu)
+
+    model = A2C("MlpPolicy", vec_env, verbose=0)
+
+    # We create a separate environment for evaluation
+    eval_env = gym.make(env_id)
+
+    # Random Agent, before training
+    mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10)
+    print(f"Mean reward: {mean_reward} +/- {std_reward:.2f}")
+
+    n_timesteps = 25000
+
+    # Multiprocessed RL Training
+    start_time = time.time()
+    model.learn(n_timesteps)
+    total_time_multi = time.time() - start_time
+
+    print(
+        f"Took {total_time_multi:.2f}s for multiprocessed version - {n_timesteps / total_time_multi:.2f} FPS"
+    )
+
+    # Single Process RL Training
+    single_process_model = A2C("MlpPolicy", env_id, verbose=0)
+
+    start_time = time.time()
+    single_process_model.learn(n_timesteps)
+    total_time_single = time.time() - start_time
+
+    print(
+        f"Took {total_time_single:.2f}s for single process version - {n_timesteps / total_time_single:.2f} FPS"
+    )
+
+    print(
+        "Multiprocessed training is {:.2f}x faster!".format(
+            total_time_single / total_time_multi
+        )
+    )
