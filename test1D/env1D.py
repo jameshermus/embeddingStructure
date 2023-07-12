@@ -102,7 +102,7 @@ class env1D(gym.Env):
         # reward = - np.linalg.norm(self.x-self.target)**2  - 0.001*np.linalg.norm(self.prev_x_dot-self.x_dot)**2
         # - 0.1*np.linalg.norm(self.x_dot)**2
 
-        if (abs(self.target - self.x) < self.tolerance_x):#& (abs(self.x_dot) < tolerance_x_dot):
+        if (abs(self.target - self.x) < self.tolerance_x): #& (abs(self.x_dot) < tolerance_x_dot):
             reward = 1
         else:
             reward = 0

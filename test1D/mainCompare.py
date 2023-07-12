@@ -10,6 +10,8 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold
+from stable_baselines3.common.monitor import Monitor
+
 from typing import Callable
 import matplotlib.pyplot as plt
 
@@ -40,25 +42,25 @@ def trainModel(controllerType,n_timesteps):
         """
 
         def _init() -> gym.Env:
-            env = env1D(env_id)
+            env = Monitor(env1D(env_id))
             env.reset(seed=seed + rank)
             return env
 
         set_random_seed(seed)
         return _init
     
-    num_cpu = 100  # Number of processes to use
+    num_cpu = 20 #100  # Number of processes to use
     # Create the vectorized environment
     env = DummyVecEnv([make_env(controllerType,i) for i in range(num_cpu)])
-    env = VecNormalize(env)
+    env = VecNormalize(env,norm_obs=True, norm_reward=True)
 
-    model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
-    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=700, verbose=1)
+    model = PPO('MlpPolicy',env,verbose=0,tensorboard_log=log_path)
+    stop_callback = StopTrainingOnRewardThreshold(reward_threshold=700, verbose=0)
     eval_callback = EvalCallback(env, 
                                  callback_on_new_best=stop_callback, 
                                  eval_freq=300_000, 
                                  best_model_save_path=save_path, 
-                                 verbose=1)
+                                 verbose=0)
     
     start_time = time.time()
     model.learn(total_timesteps=n_timesteps,callback=eval_callback)
@@ -72,7 +74,13 @@ def trainModel(controllerType,n_timesteps):
     evaluate_policy(model, env_eval, n_eval_episodes=10, render=False)
 
 
-n_timesteps = 3_000_000
+n_timesteps = 10_000_000
 controllerType = ['f','x0','submovement']
 for i in range(len(controllerType)):
     trainModel(controllerType[i],n_timesteps)
+
+
+
+
+
+
