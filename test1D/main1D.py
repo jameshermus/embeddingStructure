@@ -30,13 +30,13 @@ check_env(env)
 # http://localhost:6006/
 
 # computationType = 'EvaluatePreLearning'
-# computationType = 'Learn' 
+computationType = 'Learn' 
 # computationType = 'Learn - Vectorized'
 # computationType = 'hardcode'
 # computationType = 'classical'
 # computationType = 'hardcode - submovement'
 # computationType = 'Evaluate'
-computationType = 'Multiprocessing'
+# computationType = 'Multiprocessing'
 
 saveName = 'test1D'
 

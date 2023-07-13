@@ -43,6 +43,8 @@ from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.env_util import make_vec_env
 from envMultiProc import envMultiProc
 
+import torch
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 """## Multiprocessing RL Training
 
@@ -86,17 +88,17 @@ def main():
     env_makeVec = make_vec_env(env_id, n_envs=num_cpu)
 
     model = A2C("MlpPolicy", env_id, verbose=0)
-    model_dummy = A2C("MlpPolicy", env_dummy, verbose=0)
+    model_dummy = A2C("MlpPolicy", env_dummy, verbose=1)
     # model_subprocVec = A2C("MlpPolicy", vec_subprocVec, verbose=0)
     model_makeVec = A2C("MlpPolicy", env_makeVec, verbose=0)
 
     n_timesteps = 25_000
 
-    # Single Process RL Training
-    start_time = time.time()
-    model.learn(n_timesteps)
-    total_time_multi = time.time() - start_time
-    print(f"Took {total_time_multi:.2f}s for single process version - {n_timesteps / total_time_multi:.2f} FPS")
+    # # Single Process RL Training
+    # start_time = time.time()
+    # model.learn(n_timesteps)
+    # total_time_multi = time.time() - start_time
+    # print(f"Took {total_time_multi:.2f}s for single process version - {n_timesteps / total_time_multi:.2f} FPS")
 
     # Dummy RL Training
     start_time = time.time()
@@ -104,17 +106,17 @@ def main():
     total_time_multi = time.time() - start_time
     print(f"Took {total_time_multi:.2f}s for dummy version - {n_timesteps / total_time_multi:.2f} FPS")
     
-    # subprocVec RL Training
-    start_time = time.time()
-    model_subprocVec.learn(n_timesteps)
-    total_time_multi = time.time() - start_time
-    print(f"Took {total_time_multi:.2f}s for subprocVec version - {n_timesteps / total_time_multi:.2f} FPS")
+    # # subprocVec RL Training
+    # start_time = time.time()
+    # model_subprocVec.learn(n_timesteps)
+    # total_time_multi = time.time() - start_time
+    # print(f"Took {total_time_multi:.2f}s for subprocVec version - {n_timesteps / total_time_multi:.2f} FPS")
 
-    # makeVec RL Training
-    start_time = time.time()
-    model_makeVec.learn(n_timesteps)
-    total_time_multi = time.time() - start_time
-    print(f"Took {total_time_multi:.2f}s for makeVec version - {n_timesteps / total_time_multi:.2f} FPS")
+    # # makeVec RL Training
+    # start_time = time.time()
+    # model_makeVec.learn(n_timesteps)
+    # total_time_multi = time.time() - start_time
+    # print(f"Took {total_time_multi:.2f}s for makeVec version - {n_timesteps / total_time_multi:.2f} FPS")
  
     # evaluate_policy(model, gym.make(env_id), n_eval_episodes=10, render=False)
 
