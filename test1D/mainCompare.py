@@ -24,6 +24,10 @@ from sb3_contrib import RecurrentPPO
 # - Normalize?
 # - Recurrent nerual networks?
 # - Liquid nerual networks
+import torch
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
+
 
 def trainModel(controllerType,n_timesteps):
 
