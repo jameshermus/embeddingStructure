@@ -34,7 +34,7 @@ class controller_f(controller):
         super().__init__()
 
     def define_spaces(self):
-        action_space = spaces.Discrete(2)
+        action_space = spaces.Discrete(3)
 
         # Obervation Space min and max
         target_range = [0.2, 0.5]
@@ -53,6 +53,8 @@ class controller_f(controller):
             f = 100
         elif(action == 1):
             f = -100
+        elif(action == 2):
+            f = 0
         # f = action
         extraCost = 0
         return f, extraCost

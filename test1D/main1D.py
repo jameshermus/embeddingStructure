@@ -32,10 +32,10 @@ from sb3_contrib import RecurrentPPO
 
 # http://localhost:6006/
 
-# computationType = 'EvaluatePreLearning'
+computationType = 'EvaluatePreLearning'
 # computationType = 'Learn' 
 # computationType = 'hardcode'
-computationType = 'classical'
+# computationType = 'classical'
 # computationType = 'hardcode - submovement'
 # computationType = 'Evaluate'
 # computationType = 'saveVideo'
@@ -47,9 +47,9 @@ if( computationType == 'EvaluatePreLearning'):
     env = env1D(controllerType='submovement',render_mode = 'human')
     obs = env.reset()
     score = 0
-    done = 0
+    terminated = 0
     episode = 0
-    while not done:
+    while not terminated:
         action = env.action_space.sample()
         obs, reward, terminated, truncated, info = env.step(action)
         score += reward

@@ -87,7 +87,7 @@ def trainModel(controllerType,n_timesteps,num_proc):
     evaluate_policy(model, env_eval, n_eval_episodes=10, render=False)
 
 
-n_timesteps = 500_000
+n_timesteps = 30_000_000
 controllerType = ['f','x0','submovement']
 for i in range(len(controllerType)):
     trainModel(controllerType[i],n_timesteps, num_proc)

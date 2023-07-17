@@ -79,10 +79,10 @@ class env1D(gym.Env):
         # Step Dynamics (update self.x_dot, self.x, self.time)
         extraCost = self.stepDynamics(action)
 
-        # actionNull = 0
-        # downSampleFactor = 15
-        # for i in range(downSampleFactor):
-        #     self.stepDynamics(actionNull)
+        actionNull = 0
+        downSampleFactor = 15
+        for i in range(downSampleFactor):
+            self.stepDynamics(actionNull)
 
         # Observation
         observation = self.robot.get_observation(self)
