@@ -29,7 +29,7 @@ import torch
 
 systemType = platform.system()
 
-if systemType == "linux":
+if systemType == "Linux":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     num_proc = 46 # Number of processes to use
 
@@ -67,7 +67,7 @@ def trainModel(controllerType,n_timesteps,num_proc):
     env = DummyVecEnv([make_env(controllerType,i) for i in range(num_proc)])
     env = VecNormalize(env,norm_obs=True, norm_reward=True)
 
-    model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
+    model = PPO('MlpPolicy',env,verbose=0,tensorboard_log=log_path)
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold=700, verbose=0)
     eval_callback = EvalCallback(env, 
                                  callback_on_new_best=stop_callback, 
@@ -88,7 +88,7 @@ def trainModel(controllerType,n_timesteps,num_proc):
 
 
 n_timesteps = 500_000
-controllerType = ['submovement'] #,'f','submovement']
+controllerType = ['f','x0','submovement']
 for i in range(len(controllerType)):
     trainModel(controllerType[i],n_timesteps, num_proc)
 
