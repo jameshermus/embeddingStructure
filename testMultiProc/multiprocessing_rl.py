@@ -44,7 +44,8 @@ from stable_baselines3.common.env_util import make_vec_env
 from envMultiProc import envMultiProc
 
 import torch
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 print(device)
 
 """## Multiprocessing RL Training
@@ -82,18 +83,18 @@ def main():
     """
 
     env_id = "CartPole-v1"
-    num_cpu = 10  # Number of processes to use
+    num_cpu = 24  # Number of processes to use
     # Create the vectorized environment
     env_dummy = DummyVecEnv([make_env(env_id, i) for i in range(num_cpu)])
     # env_subprocVec = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)])
     env_makeVec = make_vec_env(env_id, n_envs=num_cpu)
 
     model = A2C("MlpPolicy", env_id, verbose=0)
-    model_dummy = A2C("MlpPolicy", env_dummy, verbose=1)
+    model_dummy = A2C("MlpPolicy", env_dummy, verbose=1,device = device)
     # model_subprocVec = A2C("MlpPolicy", vec_subprocVec, verbose=0)
     model_makeVec = A2C("MlpPolicy", env_makeVec, verbose=0)
 
-    n_timesteps = 25_000
+    n_timesteps = 100_000
 
     # # Single Process RL Training
     # start_time = time.time()

@@ -24,12 +24,22 @@ from sb3_contrib import RecurrentPPO
 # - Normalize?
 # - Recurrent nerual networks?
 # - Liquid nerual networks
+import platform
 import torch
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+systemType = platform.system()
+
+if systemType == "linux":
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    num_proc = 46 # Number of processes to use
+
+elif systemType == "Darwin":
+    device = torch.device("cpu")
+    num_proc = 10 # Number of processes to use
+    # device = torch.device("mps")
 print(device)
 
-
-def trainModel(controllerType,n_timesteps):
+def trainModel(controllerType,n_timesteps,num_proc):
 
     log_path = os.path.join('Training','Logs',controllerType + str(n_timesteps))
     save_path = os.path.join('Training','Saved_Models', controllerType)
@@ -53,12 +63,11 @@ def trainModel(controllerType,n_timesteps):
         set_random_seed(seed)
         return _init
     
-    num_cpu = 20 #100  # Number of processes to use
     # Create the vectorized environment
-    env = DummyVecEnv([make_env(controllerType,i) for i in range(num_cpu)])
+    env = DummyVecEnv([make_env(controllerType,i) for i in range(num_proc)])
     env = VecNormalize(env,norm_obs=True, norm_reward=True)
 
-    model = PPO('MlpPolicy',env,verbose=0,tensorboard_log=log_path)
+    model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold=700, verbose=0)
     eval_callback = EvalCallback(env, 
                                  callback_on_new_best=stop_callback, 
@@ -78,10 +87,10 @@ def trainModel(controllerType,n_timesteps):
     evaluate_policy(model, env_eval, n_eval_episodes=10, render=False)
 
 
-n_timesteps = 10_000_000
-controllerType = ['f','x0','submovement']
+n_timesteps = 500_000
+controllerType = ['submovement'] #,'f','submovement']
 for i in range(len(controllerType)):
-    trainModel(controllerType[i],n_timesteps)
+    trainModel(controllerType[i],n_timesteps, num_proc)
 
 
 

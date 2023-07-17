@@ -72,6 +72,7 @@ class env1D(gym.Env):
 
     def step(self,action):
 
+        # start_time = time.time()
 
         # self.prev_x_dot = self.x_dot
 
@@ -136,6 +137,9 @@ class env1D(gym.Env):
 
         if self.render_mode == "human":
             self._render_frame()
+
+        # total_time_multi = time.time() - start_time
+        # print(f"Took {total_time_multi:.8f}s for learn")
      
         return observation, reward, terminated, truncated, info
 

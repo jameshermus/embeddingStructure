@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 
 def modelClassical(env,obs):
 
-    x = obs[0,0]
-    x_dot = obs[1,0]
-    target = obs[2,0]
-    x_0_max = obs[3,0]
+    x = obs[0]
+    x_dot = obs[1]
+    target = obs[2]
+    x_0_max = obs[3]
     # env.robot.onGoingSubmovements 
     # x_0_max, _ = env.robot.sumOnGoingSubmovements(env.time+env.robot.D_high)
 
@@ -20,13 +20,13 @@ def modelClassical(env,obs):
 
     if (abs(error) > env.tolerance_x-0.01) & (env.robot.latency > env.robot.thresholdLatency):
         
-        if error > 0.2:
+        if error > env.robot.A_high:
             action = 1
-        elif error > 0.01:
+        elif error > env.robot.A_low:
             action = 2
-        elif error < -0.2:
+        elif error < -env.robot.A_high:
             action = 4
-        elif error < -0.01:
+        elif error < -env.robot.A_low:
             action = 3
         else: 
             action = 0
