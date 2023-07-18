@@ -12,7 +12,7 @@ def submovement(D,A,tStart,time):
         elif time > tStart+D:
             t = D
             x = A*( (10/D**3)*t**3 + (-15/D**4)*t**4 + (6/D**5)*t**5 )
-            v = 0
+            v = 0.0
         else:
             t = time-tStart
             x = A*( (10/D**3)*t**3 + (-15/D**4)*t**4 +  (6/D**5)*t**5 )

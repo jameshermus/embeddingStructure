@@ -89,7 +89,7 @@ class controller_x0(controller):
         x_dot = state[1]
 
         x0 = action[0]
-        x0_dot = 0 # action[1]
+        x0_dot = 0.0 # action[1]
 
         zeta = 1
         wn = 50

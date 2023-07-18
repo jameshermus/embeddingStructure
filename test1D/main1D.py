@@ -44,7 +44,7 @@ saveName = 'test1D'
 
 if( computationType == 'EvaluatePreLearning'):
 # Look at it play untrained
-    env = env1D(controllerType='submovement',render_mode = 'human')
+    env = env1D(controllerType='x0',render_mode = 'human')
     obs = env.reset()
     score = 0
     terminated = 0
