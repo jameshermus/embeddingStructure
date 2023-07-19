@@ -50,18 +50,18 @@ class controller_f(controller):
 
     def get_force(self, state, action, time):
         if(action == 0):
-            f = 100
+            f = np.float32(100)
         elif(action == 1):
-            f = -100
+            f = np.float32(-100)
         elif(action == 2):
-            f = 0
+            f = np.float32(0)
         # f = action
         extraCost = 0
         return f, extraCost
     
     def get_observation(self,env):
         # return np.array([env.x, env.x_dot])
-        return np.array([env.x, env.x_dot,env.target],dtype=np.float32)
+        return np.array([env.x, env.x_dot, env.target],dtype=np.float32)
 
 
 class controller_x0(controller):
@@ -89,10 +89,10 @@ class controller_x0(controller):
         x_dot = state[1]
 
         x0 = action[0]
-        x0_dot = 0.0 # action[1]
+        x0_dot = np.float32(0.0) # action[1]
 
-        zeta = 1
-        wn = 50
+        zeta = np.float32(1)
+        wn = np.float32(50)
         k = wn**2*self.m
         b = 2*zeta*wn*self.m
         

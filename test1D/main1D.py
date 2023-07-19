@@ -21,7 +21,7 @@ from sb3_contrib import RecurrentPPO
 # tensorboard --logdir='Training/Logs'  
 
 # from stable_baselines3.common.env_checker import check_env
-# env = env1D('x0')
+# env = env1D('f')
 # check_env(env)
 
 # Ideas:

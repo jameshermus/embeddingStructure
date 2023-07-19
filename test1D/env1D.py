@@ -20,6 +20,7 @@ class env1D(gym.Env):
         super(env1D, self).__init__()
         
         self.render_mode = render_mode
+        self.controllerType = controllerType
         
         if self.render_mode == 'human':
             self.fig = plt.figure()
@@ -81,9 +82,10 @@ class env1D(gym.Env):
 
         actionNull = 0
         downSampleFactor = 15
-        for i in range(downSampleFactor):
-            self.stepDynamics(actionNull)
-
+        if self.controllerType == 'submovement':
+            for i in range(downSampleFactor):
+                self.stepDynamics(actionNull)
+     
         # Observation
         observation = self.robot.get_observation(self)
             
