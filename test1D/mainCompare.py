@@ -11,6 +11,7 @@ from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold
 from stable_baselines3.common.monitor import Monitor
+from helperFunctions import defineDirectories
 
 from typing import Callable
 import matplotlib.pyplot as plt
@@ -41,8 +42,7 @@ print(device)
 
 def trainModel(controllerType,n_timesteps,num_proc):
 
-    log_path = os.path.join('Training','Logs',controllerType + str(n_timesteps))
-    save_path = os.path.join('Training','Saved_Models', controllerType)
+    _, log_path, save_path, _ = defineDirectories(controllerType)  
 
     def make_env(env_id: str,rank: int, seed: int = 0) -> Callable:
         """
@@ -91,7 +91,6 @@ n_timesteps = 30_000_000
 controllerType = ['f','x0','submovement']
 for i in range(len(controllerType)):
     trainModel(controllerType[i],n_timesteps, num_proc)
-
 
 
 

@@ -1,4 +1,6 @@
 import numpy as np    
+from datetime import date
+import os
     
 def submovement(D,A,tStart,time):
         # D = sub[0]
@@ -19,3 +21,14 @@ def submovement(D,A,tStart,time):
             v = A*( (30/D**3)*t**2 + (-60/D**4)*t**3 +  (30/D**5)*t**4 )
             
         return x,v
+
+def defineDirectories(controllerType,dateInput = None):   
+    if(dateInput == None):
+        saveName = date.today().strftime("%y-%m-%d") + "_" + controllerType
+    else:
+        saveName = dateInput + "_" + controllerType
+
+    log_path = os.path.join('Training','Logs')
+    save_path = os.path.join('Training','Saved_Models', saveName)
+    video_path = os.path.join('Video', saveName)
+    return saveName, log_path, save_path, video_path

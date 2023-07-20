@@ -53,7 +53,6 @@ class env1D(gym.Env):
 
         pass
 
-
     def reset(self, seed=None, options=None):
 
         super().reset(seed=seed, options=options)

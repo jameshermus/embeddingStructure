@@ -3,7 +3,7 @@ import numpy as np
 from gymnasium import spaces
 import os
 import itertools
-from minJerkHelperFunctions import submovement
+from helperFunctions import submovement
 
 from gym.spaces import Box
 
@@ -111,7 +111,7 @@ class controller_submovement(controller):
         self.completedSubmovementDiscplacement =[]
         self.initial_ib_b = 0
         self.thresholdLatency = 10
-        self.latency = self.thresholdLatency + 1
+        # self.latency = self.thresholdLatency + 1
         self.D_high = 0.05
         self.A_low = 0.01
         self.A_high = 0.2
@@ -192,11 +192,11 @@ class controller_submovement(controller):
         if actionSelection: # Applied only when step == true
             self.add_submovement([duration, amplitude, time])
             extraCost = -10
-            if (self.latency <= self.thresholdLatency):
-                extraCost += -100
-            self.latency = 0 # Reset latence after adding extra cost
-        else:
-            self.latency += 1
+            # if (self.latency <= self.thresholdLatency):
+            #     extraCost += -100
+            # self.latency = 0 # Reset latence after adding extra cost
+        # else:
+            # self.latency += 1
 
         # Remove submovements which are no longer active **ADD LATER TO MAKE MORE EFFICIENT
         # self.onGoingSubmovements = [submov for submov in self.onGoingSubmovements if (submov[0]+submov[3]) >= time]

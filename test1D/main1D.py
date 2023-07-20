@@ -14,7 +14,7 @@ from typing import Callable
 import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
 from stable_baselines3.common.monitor import Monitor
-
+from helperFunctions import defineDirectories
 
 from sb3_contrib import RecurrentPPO
 
@@ -25,17 +25,15 @@ from sb3_contrib import RecurrentPPO
 # check_env(env)
 
 # Ideas:
-# - Read about vectorize
-# - Normalize?
 # - Recurrent nerual networks?
 # - Liquid nerual networks
 
 # http://localhost:6006/
 
-computationType = 'EvaluatePreLearning'
+# computationType = 'EvaluatePreLearning'
 # computationType = 'Learn' 
 # computationType = 'hardcode'
-# computationType = 'classical'
+computationType = 'classical'
 # computationType = 'hardcode - submovement'
 # computationType = 'Evaluate'
 # computationType = 'saveVideo'
@@ -70,16 +68,13 @@ if( computationType == 'classical' ):
         score += reward
         print('Episode:{} Score:{} position{}, time:{}, action:{}'.format(episode, score, obs[0], env.time,action))
     env.close()
+    print('test')
 
 
 if( computationType == 'hardcode'):
 
     # Add code to import a model
     controllerType = 'x0'
-    saveName = 'x02000000/best_model'
-    log_path = os.path.join('Training','Logs')
-    save_path = os.path.join('Training','Saved_Models', saveName)
-    model = PPO.load(save_path)
 
     # Hard code submovement as a sanity check
     env = env1D(controllerType,render_mode='human')
@@ -146,12 +141,11 @@ if( computationType == 'hardcode - submovement'):
 
 if(computationType ==  'Learn'):
     
-    saveName = 'PPO_f_Learn'
-    log_path = os.path.join('Training','Logs')
-    save_path = os.path.join('Training','Saved_Models', saveName)
+    controllerType = 'submovement'
+    _, log_path, save_path, _ = defineDirectories(controllerType)  
 
     # Training
-    env = env1D('submovement')
+    env = env1D(controllerType)
     obs = env.reset()
 
     model = PPO('MlpPolicy',env,verbose=1,tensorboard_log=log_path)
@@ -174,52 +168,3 @@ if(computationType ==  'Learn'):
     model.save(save_path)
 
     evaluate_policy(model, env, n_eval_episodes=10, render=None)
-
-if (computationType == 'saveVideo'):
-
-    # export IMAGEIO_FFMPEG_EXE=/Applications/audio-orchestrator-ffmpeg/ffmpeg
-
-    controllerType = 'f'
-
-    def make_env(env_id: str,rank: int, seed: int = 0) -> Callable:
-        """
-        Utility function for multiprocessed env.
-
-        :param env_id: (str) the environment ID
-        :param num_env: (int) the number of environment you wish to have in subprocesses
-        :param seed: (int) the inital seed for RNG
-        :param rank: (int) index of the subprocess
-        :return: (Callable)
-        """
-
-        def _init() -> gym.Env:
-            env = Monitor(env1D(env_id,render_mode="rgb_array"))
-            env.reset(seed=seed + rank)
-            return env
-
-        set_random_seed(seed)
-        return _init
-    
-
-    video_folder = "videos/"
-    video_length = 100
-    num_proc = 4
-
-    # Create the vectorized environment
-    env = DummyVecEnv([make_env(controllerType,i) for i in range(num_proc)])
-    env = VecNormalize(env,norm_obs=True, norm_reward=True)
-
-    obs = env.reset()
-    # Record the video starting at the first step
-    # env = VecVideoRecorder(env, video_folder,
-    #                     record_video_trigger=lambda x: x == 0, video_length=video_length,
-    #                     name_prefix=f"random-agent-{controllerType}")
-
-    env.reset()
-    for _ in range(video_length + 1):
-        action = [env.action_space.sample()]
-        obs, _, _, _, _ = env.step(action)
-
-    env.close() # Save video
-
-
