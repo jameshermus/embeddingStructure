@@ -19,7 +19,7 @@ class plotModels():
     def simulateModel(self):
         
         # Add code to import a model
-        model = PPO.load(self.save_path)
+        model = PPO.load(self.save_path+'.zip')
 
         # Hard code submovement as a sanity check
         env = env1D(self.controllerType,render_mode=None)
@@ -79,5 +79,5 @@ class plotModels():
 
 dateInput = '23-07-19'
 # plotModels('f', dateInput) 
-# plotModels('x0', dateInput)
-plotModels('submovement', dateInput)
+plotModels('x0', dateInput)
+# plotModels('submovement', dateInput)
