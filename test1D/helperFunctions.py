@@ -29,6 +29,5 @@ def defineDirectories(controllerType,dateInput = None):
         saveName = dateInput + "_" + controllerType
 
     log_path = os.path.join('Training','Logs')
-    save_path = os.path.join('Training','Saved_Models', saveName)
-    video_path = os.path.join('Video', saveName)
-    return saveName, log_path, save_path, video_path
+    save_path = os.path.join('Training','General', saveName)
+    return saveName, log_path, save_path,

@@ -12,6 +12,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
+import cv2
+import pygame
+
 
 from controller import controller, controller_f, controller_x0, controller_submovement
 
@@ -22,10 +25,10 @@ class env1D(gym.Env):
         self.render_mode = render_mode
         self.controllerType = controllerType
         
-        if self.render_mode == 'human':
-            self.fig = plt.figure()
-        else:
-            self.fig = []
+        # if self.render_mode == 'human' or self.render_mode:
+        #     self.fig = plt.figure()
+        # else:
+        self.fig = []
 
         self.time = np.float32(0.0)
 
@@ -79,11 +82,18 @@ class env1D(gym.Env):
         # Step Dynamics (update self.x_dot, self.x, self.time)
         extraCost = self.stepDynamics(action)
 
+        if (abs(self.target - self.x) < self.tolerance_x):
+                reward = 1
+        else:
+            reward = 0
+
         actionNull = 0
         downSampleFactor = 15
         if self.controllerType == 'submovement':
             for i in range(downSampleFactor):
                 self.stepDynamics(actionNull)
+                if (abs(self.target - self.x) < self.tolerance_x):
+                    reward += 1
      
         # Observation
         observation = self.robot.get_observation(self)
@@ -103,11 +113,6 @@ class env1D(gym.Env):
         # reward = norm.pdf(self.x, loc=self.target, scale=sigma)[0]  
         # reward = - np.linalg.norm(self.x-self.target)**2  - 0.001*np.linalg.norm(self.prev_x_dot-self.x_dot)**2
         # - 0.1*np.linalg.norm(self.x_dot)**2
-
-        if (abs(self.target - self.x) < self.tolerance_x): #& (abs(self.x_dot) < tolerance_x_dot):
-            reward = 1
-        else:
-            reward = 0
 
         reward += extraCost
 
@@ -145,23 +150,44 @@ class env1D(gym.Env):
         return observation, reward, terminated, truncated, info
 
     def render(self):
-        if self.render_mode == 'human':
+        if self.render_mode == 'human' or self.render_mode == 'rgb_array':
             return self._render_frame()
+        else:
+            pass
     
     def _render_frame(self):
         # X-Y position of robot
-        self.fig.clear()
-        plt.plot(self.x,0,'k.',markersize=30)
-        plt.plot([0.0,0.0],[-0.1,0.1],'k')
-        plt.plot([self.target-self.tolerance_x,self.target-self.tolerance_x],[-0.1,0.1],'k')
-        plt.plot([self.target+self.tolerance_x,self.target+self.tolerance_x],[-0.1,0.1],'k')
-        plt.title(format(self.time, ".2f"))
-        # plt.ylabel('x')
-        # plt.ylabel('y')
-        # plt.ylim([-0.5, 0.5])
-        plt.xlim([-0.1,1.0])
-        plt.pause(0.0001)
-        # plt.show()
+        if (self.fig == []):
+            self.fig = plt.figure()
+            plt.plot([0.0,0.0],[-0.1,0.1],'k')
+            plt.plot([self.target-self.tolerance_x,self.target-self.tolerance_x],[-0.1,0.1],'k')
+            plt.plot([self.target+self.tolerance_x,self.target+self.tolerance_x],[-0.1,0.1],'k')
+            plt.xlabel('x (m)')
+            plt.ylim([-0.5, 0.5])
+            plt.xlim([-0.1,1.0])
+            plt.plot(self.x,0,'k.',markersize=30)
+            self.plot_object = plt.gca().lines[3]
+        else:
+            self.plot_object.set_data(self.x,0)
+            plt.title(format(self.time, ".2f"))
+
+
+        if self.render_mode =='human':
+            plt.pause(0.0001)
+            pass
+
+        elif self.render_mode == 'rgb_array':
+            # Save the plot as an image
+            plt.savefig("temp_render.png")
+            # self.fig.clear()
+
+            # Read the image and extract RGB values
+            frame = cv2.imread("temp_render.png")
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Return the RGB frame
+            return rgb_frame
+
     
     def close(self):
         pass

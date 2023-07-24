@@ -42,7 +42,7 @@ print(device)
 
 def trainModel(controllerType,n_timesteps,num_proc):
 
-    _, log_path, save_path, _ = defineDirectories(controllerType)  
+    _, log_path, save_path = defineDirectories(controllerType)  
 
     def make_env(env_id: str,rank: int, seed: int = 0) -> Callable:
         """
@@ -71,7 +71,7 @@ def trainModel(controllerType,n_timesteps,num_proc):
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold=700, verbose=0)
     eval_callback = EvalCallback(env, 
                                  callback_on_new_best=stop_callback, 
-                                 eval_freq=300_000, 
+                                 eval_freq=500_000, 
                                  best_model_save_path=save_path, 
                                  verbose=0)
     
@@ -80,14 +80,14 @@ def trainModel(controllerType,n_timesteps,num_proc):
     total_time = time.time() - start_time
     print(f"Controller Type", controllerType, f"took: {total_time:.2f}s")
 
-    model.save(save_path)
+    model.save(save_path + '/model_final')
     
     env_eval = env1D(controllerType,render_mode=None)
     obs = env_eval.reset()
     evaluate_policy(model, env_eval, n_eval_episodes=10, render=False)
 
 
-n_timesteps = 5_000_000
+n_timesteps = 30_000_000
 controllerType = ['f','x0','submovement']
 for i in range(len(controllerType)):
     trainModel(controllerType[i],n_timesteps, num_proc)
