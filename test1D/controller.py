@@ -28,6 +28,10 @@ class controller(ABC):
     def get_observation(self,env):
 
         return observation
+    
+    @abstractmethod
+    def reset_controller(self):
+        pass
 
 class controller_f(controller):
     def __init__(self):
@@ -63,6 +67,8 @@ class controller_f(controller):
         # return np.array([env.x, env.x_dot])
         return np.array([env.x, env.x_dot, env.target],dtype=np.float32)
 
+    def reset_controller(self):
+        pass
 
 class controller_x0(controller):
     def __init__(self):
@@ -100,22 +106,25 @@ class controller_x0(controller):
         extraCost = 0
 
         return f, extraCost
-    
+        
     def get_observation(self,env):
         return np.array([env.x, env.x_dot,env.target],dtype=np.float32)
+    
+    def reset_controller(self):
+        pass
 
 class controller_submovement(controller):
     def __init__(self):
         super().__init__()
-        self.onGoingSubmovements = []
-        self.completedSubmovementDiscplacement =[]
+
         self.initial_ib_b = 0
-        self.thresholdLatency = 10
-        self.latency = self.thresholdLatency + 1
+        self.thresholdLatency = 15
         self.D_high = 0.05
         self.A_low = 0.01
         self.A_high = 0.2
-        self.x0_completeSubmovements = 0
+
+        self.reset_controller() # Sets controller internal states to initial values
+
 
     def define_spaces(self):
         # Action Space Ranges min and max
@@ -152,11 +161,19 @@ class controller_submovement(controller):
         f = k*(x0-x) + b*(x0_dot - x_dot)
 
         return f, extraCost
-    
+        
     def get_observation(self,env):
         xfhat_0b_b, _ = self.sumOnGoingSubmovements_Vec(env.time + self.D_high) # Estiamte final position after final submovement ends
         xfhat_0b_b = np.float32(xfhat_0b_b)
         return np.array([env.x, env.x_dot,env.target,xfhat_0b_b],dtype=np.float32)
+    
+    def reset_controller(self):
+        self.onGoingSubmovements = []
+        self.completedSubmovementDiscplacement =[]
+        self.latency = self.thresholdLatency + 1
+        self.x0_completeSubmovements = 0
+        self.N_sub_tot = 0
+        pass
     
     def getZFT(self,action,time): # Later this will become get primatives
         # Because this function changes self.onGoingSubmovements only call it with step==True when using step function
@@ -167,24 +184,7 @@ class controller_submovement(controller):
         # duration = action[1]
         # amplitude = action[2]
 
-        if(action == 0):
-            actionSelection = False
-        elif(action == 1):
-            actionSelection = True
-            duration = self.D_high
-            amplitude = self.A_high
-        elif(action == 2):
-            actionSelection = True
-            duration = self.D_high
-            amplitude = self.A_low
-        elif(action == 3):
-            actionSelection = True
-            duration = self.D_high
-            amplitude = -self.A_high
-        elif(action == 4):
-            actionSelection = True
-            duration = self.D_high
-            amplitude = -self.A_low
+        actionSelection, duration, amplitude = self.get_subParam(action)
 
         extraCost = 0
         
@@ -207,8 +207,34 @@ class controller_submovement(controller):
         
         return x_0b_b, x0_dot_b, extraCost
     
+    def get_subParam(self,action):
+
+        if(action == 0):
+            actionSelection = False
+            amplitude = 0
+            duration = 0
+        elif(action == 1):
+            actionSelection = True
+            duration = self.D_high
+            amplitude = self.A_high
+        elif(action == 2):
+            actionSelection = True
+            duration = self.D_high
+            amplitude = self.A_low
+        elif(action == 3):
+            actionSelection = True
+            duration = self.D_high
+            amplitude = -self.A_high
+        elif(action == 4):
+            actionSelection = True
+            duration = self.D_high
+            amplitude = -self.A_low
+
+        return actionSelection, duration, amplitude
+    
     def add_submovement(self,sub):
         self.onGoingSubmovements.append(sub)
+        self.N_sub_tot += 1
         # self.onGoingSubmovements.pop(0)
         # if len(self.onGoingSubmoements) > self.D_high 
         pass

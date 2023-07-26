@@ -24,6 +24,10 @@ class env1D(gym.Env):
         
         self.render_mode = render_mode
         self.controllerType = controllerType
+        # if self.controllerType == 'submovement':
+        #     self.downSampleFactor = 1 #15 # hard code down sample as 1
+        # else:
+        #     self.downSampleFactor = 1
         
         # if self.render_mode == 'human' or self.render_mode:
         #     self.fig = plt.figure()
@@ -66,6 +70,8 @@ class env1D(gym.Env):
         self.target = self.observation_space.sample()[2]
         observation = self.robot.get_observation(self)
 
+        self.robot.reset_controller() # Sets controller internal states to initial values
+
         if self.render_mode == "human":
             self._render_frame()
 
@@ -85,15 +91,14 @@ class env1D(gym.Env):
         if (abs(self.target - self.x) < self.tolerance_x):
                 reward = 1
         else:
-            reward = 0
+            reward = 0            
 
-        actionNull = 0
-        downSampleFactor = 15
-        if self.controllerType == 'submovement':
-            for i in range(downSampleFactor):
-                self.stepDynamics(actionNull)
-                if (abs(self.target - self.x) < self.tolerance_x):
-                    reward += 1
+        # actionNull = 0
+        # if self.controllerType == 'submovement':
+        #     for i in range(self.downSampleFactor):
+        #         self.stepDynamics(actionNull)
+        #         if (abs(self.target - self.x) < self.tolerance_x):
+        #             reward += 1
      
         # Observation
         observation = self.robot.get_observation(self)
@@ -101,6 +106,11 @@ class env1D(gym.Env):
         # Let simulation run a fixed number of time steps
         if self.time >= self.timeMax:
             terminated = True
+
+            # Add high penelty for zero submovements or more than 10 submovements
+            if self.controllerType == 'submovment':
+                if self.robot.N_sub_tot > 10 or self.robot.N_sub_tot == 0:
+                    reward += -500
         else: 
             terminated = False
 

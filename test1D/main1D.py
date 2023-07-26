@@ -4,7 +4,7 @@ import os,time, sys
 import numpy as np
 from env1D import env1D
 import gymnasium as gym
-from modelClassical import modelClassical
+from modelClassical import modelClassical_f, modelClassical_submovement, modelClassical_x0
 from stable_baselines3 import PPO, A2C
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize, VecVideoRecorder
 from stable_baselines3.common.utils import set_random_seed
@@ -56,14 +56,21 @@ if( computationType == 'EvaluatePreLearning'):
 
 if( computationType == 'classical' ):
 # Look at it play untrained
-    env = env1D(controllerType='submovement',render_mode = 'human')
+    controllerType='submovement'
+    env = env1D(controllerType=controllerType,render_mode = 'human')
+    if controllerType == 'f':
+        model = modelClassical_f(env)
+    elif controllerType == 'x0':
+        model = modelClassical_x0(env)
+    elif controllerType == 'submovement':
+        model = modelClassical_submovement(env)
     obs,_ = env.reset()
     score = 0
     episode = 0
     count = 0
     terminated = False
     while not terminated:
-        action = modelClassical(env,obs)
+        action, _ = model.predict(obs)
         obs, reward, terminated, truncated, info = env.step(action)
         score += reward
         print('Episode:{} Score:{} position{}, time:{}, action:{}'.format(episode, score, obs[0], env.time,action))
