@@ -19,7 +19,7 @@ class controller(ABC):
         return action_space, obseration_space
 
     @abstractmethod
-    def get_force(state,action,time):
+    def get_force(state,action,time, getDynamicsCallBool):
         # Each implamentation must define the get_torque method. This method determins the torque to be produced
         # at each time step.
         return f, extraCost
@@ -52,7 +52,7 @@ class controller_f(controller):
 
         return action_space, observation_space
 
-    def get_force(self, state, action, time):
+    def get_force(self, state, action, time, getDynamicsCallBool = False):
         if(action == 0):
             f = np.float32(100)
         elif(action == 1):
@@ -89,7 +89,7 @@ class controller_x0(controller):
 
         return action_space, observation_space
 
-    def get_force(self, state, action, time):
+    def get_force(self, state, action, time, getDynamicsCallBool = False):
 
         x = state[0]
         x_dot = state[1]
@@ -120,7 +120,7 @@ class controller_submovement(controller):
         self.initial_ib_b = 0
         self.thresholdLatency = 15
         self.D_high = 0.05
-        self.A_low = 0.01
+        self.A_low = 0.02
         self.A_high = 0.2
 
         self.reset_controller() # Sets controller internal states to initial values
@@ -146,12 +146,13 @@ class controller_submovement(controller):
 
         return action_space, observation_space
     
-    def get_force(self, state, action, time):
+    def get_force(self, state, action, time, getDynamicsCallBool = False):
+        # getDynamicsCallBool is True if submovments should be added/removed and False if not.
 
         x = state[0]
         x_dot = state[1]
 
-        x0,x0_dot,extraCost = self.getZFT(action, time)
+        x0,x0_dot,extraCost = self.get_ZFT(action, time, getDynamicsCallBool)
 
         zeta = 1
         wn = 50
@@ -175,7 +176,7 @@ class controller_submovement(controller):
         self.N_sub_tot = 0
         pass
     
-    def getZFT(self,action,time): # Later this will become get primatives
+    def get_ZFT(self,action,time, getDynamicsCallBool): # Later this will become get primatives
         # Because this function changes self.onGoingSubmovements only call it with step==True when using step function
         # in all other cases leave step == false
 
@@ -187,21 +188,19 @@ class controller_submovement(controller):
         actionSelection, duration, amplitude = self.get_subParam(action)
 
         extraCost = 0
-        
-        # add to list
-        if actionSelection: # Applied only when step == true
-            self.add_submovement([duration, amplitude, time])
-            extraCost = -0.1
-            # if (self.latency <= self.thresholdLatency):
-            #     extraCost += -100
-            self.latency = 0 # Reset latence after adding extra cost
-        else:
-            self.latency += 1
 
-        # Remove submovements which are no longer active **ADD LATER TO MAKE MORE EFFICIENT
-        # self.onGoingSubmovements = [submov for submov in self.onGoingSubmovements if (submov[0]+submov[3]) >= time]
+        if getDynamicsCallBool: # This allows other function to call get_ZFT() and get_force() with out adding or removing submovements
+            # add to list
+            if actionSelection: # Applied only when step == true
+                self.add_submovement([duration, amplitude, time])
+                extraCost = -0.1
+                # if (self.latency <= self.thresholdLatency):
+                #     extraCost += -100
+                self.latency = 0 # Reset latence after adding extra cost
+            else:
+                self.latency += 1
 
-        self.removeCompleteSubmovements(time)
+            self.removeCompleteSubmovements(time)
 
         x_0b_b, x0_dot_b = self.sumOnGoingSubmovements_Vec(time)
         
@@ -289,7 +288,7 @@ class controller_submovement(controller):
         if(len(dex) > 0):
             dex.sort(reverse=True) # Do in reverse order not to mess up indexing
             for i in dex:
-                self.x0_completeSubmovements += self.onGoingSubmovements[i][0]
+                self.x0_completeSubmovements += self.onGoingSubmovements[i][1] # FIXED: Take amplitude not duration
                 self.onGoingSubmovements.pop(i)
 
         pass

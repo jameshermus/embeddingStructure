@@ -204,7 +204,7 @@ class env1D(gym.Env):
 
     def stepDynamics(self,action):   
         state = self.robot.get_observation(self)
-        f, extraCost = self.robot.get_force(state, action, self.time)
+        f, extraCost = self.robot.get_force(state, action, self.time,getDynamicsCallBool=True)
         self.x_dot = self.x_dot + (1/self.robot.m) * f * self.timeStep
         self.x = self.x + self.x_dot * self.timeStep
         self.time += self.timeStep

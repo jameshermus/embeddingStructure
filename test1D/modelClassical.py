@@ -6,9 +6,7 @@ class modelClassical(ABC):
     def __init__(self,controllerType,tolerance_x, submovementParam = None):
         self.controllerType = controllerType
         self.tolerance_x = tolerance_x
-        # if self.controllerType == 'submovement':
-            # self.latency = latency
-            # self.thresholdLatency = thresholdLatency
+        self.reset()
         pass
 
     @abstractmethod
@@ -16,6 +14,10 @@ class modelClassical(ABC):
         # Each implamentation of the define_space method must define the action and observation spaces
         # This will very with diffrent types of x0 vs primative controls
         return action, extra
+    
+    @abstractmethod
+    def reset(self):
+        pass
     
 class modelClassical_f(modelClassical):
     def __init__(self,controllerType,tolerance_x,submovementParam = None):
@@ -29,26 +31,26 @@ class modelClassical_f(modelClassical):
 
         error = target - x
 
-        # if (abs(error) < self.tolerance_x - 0.01):
-        #     # if(abs(x_dot) < 0.5):
-        #     #     action = 2
-        #     # else:
-        #     if(error > 0):
-        #         action = 0
-        #     else:
-        #         action = 1
-        if (error<0):
+        if (self.nAction_0 > 0 and self.nAction_1>0 and self.nAction_0 == self.nAction_1):
             action = 2
         elif (abs(error) > target/2):
             action = 0
+            self.nAction_0 += 1
         elif (abs(error) < target/2):
             action = 1
+            self.nAction_1 += 1
         else:
             action = 2
 
         extra = []
 
         return action, extra
+    
+    def reset(self):
+        self.nAction_0 = 0
+        self.nAction_1 = 0
+        pass
+    
     
 class modelClassical_x0(modelClassical):
     def __init__(self,controllerType,tolerance_x,submovementParam = None):
@@ -65,6 +67,9 @@ class modelClassical_x0(modelClassical):
         extra = []
 
         return action, extra
+    
+    def reset(self):
+        pass
     
 class modelClassical_submovement(modelClassical):
     def __init__(self,controllerType,tolerance_x, submovementParam):
@@ -109,3 +114,6 @@ class modelClassical_submovement(modelClassical):
         extra = []
 
         return action, extra
+    
+    def reset(self):
+        pass

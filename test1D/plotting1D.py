@@ -93,13 +93,13 @@ class plotModels():
                 self.submovementActionVec.append([action,self.env.time])
 
             obs, reward, terminated, truncated, info = self.env.step(action)
-            # self.f[count],_ = self.env.robot.get_force(obs, action, self.env.time) 
+            self.f[count],_ = self.env.robot.get_force(obs, action, self.env.time) 
             self.x[count] = obs[0]
             self.x_dot[count] = obs[1]
             # actionList.append(action.append(env.time))
             self.score += reward
             count += 1
-            # print('Episode:{} Score:{} Action:{} Latencey:{}'.format(episode, self.score, action,self.env.robot.latency))
+            # print('Episode:{} Score:{} Action:{}'.format(episode, self.score, action))
         if self.saveVideoBool:
             # Release video writer
             video_writer.release()
@@ -142,6 +142,8 @@ class plotModels():
             terminated = False
             totalReward = 0
             obs,_ = self.env.reset()
+            if self.classicalBool: 
+                self.model.reset()
             while not terminated:
                 action,_ = self.model.predict(obs)
                 obs, reward, terminated, truncated, info = self.env.step(action)
@@ -189,13 +191,13 @@ class plotModels():
         plt.savefig(self.save_path+"/"+self.controllerType+"_"+self.nameLearnClassic+"_velocity.png")
         plt.close(plt.gcf().number)
 
-        # plt.figure()
-        # plt.plot(self.timeVec,self.f)
-        # plt.xlabel('Time(s)')
-        # plt.ylabel('f(N)')
-        # plt.subplots_adjust(left=0.15, bottom=0.15)
-        # plt.savefig(self.save_path+"/"+self.controllerType+"_"+self.nameLearnClassic+"_force.png")
-        # plt.close(plt.gcf().number)
+        plt.figure()
+        plt.plot(self.timeVec,self.f)
+        plt.xlabel('Time(s)')
+        plt.ylabel('f(N)')
+        plt.subplots_adjust(left=0.15, bottom=0.15)
+        plt.savefig(self.save_path+"/"+self.controllerType+"_"+self.nameLearnClassic+"_force.png")
+        plt.close(plt.gcf().number)
 
         pass
 
@@ -247,13 +249,13 @@ class plotModels():
         plt.close(plt.gcf().number)        
 
 
-dateInput = '23-07-24'
+dateInput = '23-07-26'
 saveVideoBool = False
 plotModels('f', dateInput,saveVideoBool=saveVideoBool) 
 plotModels('x0', dateInput,saveVideoBool=saveVideoBool)
-plotModels('submovement', dateInput,saveVideoBool=saveVideoBool)
+plotModels('submovement', dateInput,saveVideoBool=saveVideoBool) 
 
-plotModels('f', dateInput, classicalBool = True,saveVideoBool=saveVideoBool) 
+plotModels('f', dateInput, classicalBool = True, saveVideoBool=saveVideoBool) 
 plotModels('x0', dateInput, classicalBool = True,saveVideoBool=saveVideoBool)
 subPlotObject = plotModels('submovement', dateInput, classicalBool = True,saveVideoBool=saveVideoBool)
 subPlotObject.makeExampleSubmovementPlot()
