@@ -103,9 +103,9 @@ class env1D(gym.Env):
         # Observation
         observation = self.robot.get_observation(self)
 
-        # if self.controllerType == 'submovement':
-        #     if self.robot.N_sub_tot > 10:
-        #         reward +=-500
+        if self.controllerType == 'submovement':
+            if self.robot.N_sub_tot > 10:
+                reward +=-500
 
             
         # Add cost for no submovement
