@@ -69,6 +69,8 @@ class env1D(gym.Env):
         self.x_dot = np.float32(0.0)
         self.target = self.observation_space.sample()[2]
         observation = self.robot.get_observation(self)
+        self.subOverBool = False
+        self.zeroActionBool = False
 
         self.robot.reset_controller() # Sets controller internal states to initial values
 
@@ -104,25 +106,23 @@ class env1D(gym.Env):
         observation = self.robot.get_observation(self)
 
         if self.controllerType == 'submovement':
-            if self.robot.N_sub_tot > 10:
+            if self.robot.N_sub_tot > 10 and not self.subOverBool:
                 reward +=-500
+                self.subOverBool = True
 
             
         # Add cost for no submovement
         if self.time >= self.timeMax - 0.05:
-            if self.controllerType == 'submovement':
+            if self.controllerType == 'submovement' and not self.zeroActionBool:
                 if self.robot.N_sub_tot == 0:
                     reward += -500
+                    self.zeroActionBool = True
 
 
         # Let simulation run a fixed number of time steps
         if self.time >= self.timeMax:
             terminated = True
 
-            # Add high penelty for zero submovements or more than 10 submovements
-            if self.controllerType == 'submovement':
-                if self.robot.N_sub_tot == 0:
-                    reward += -500
         else: 
             terminated = False
 

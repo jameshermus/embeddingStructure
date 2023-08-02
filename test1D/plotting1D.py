@@ -228,13 +228,13 @@ class plotModels():
 
 dateInput = '23-07-28'
 saveVideoBool = False
-plotModels('f', dateInput,saveVideoBool=saveVideoBool) 
-plotModels('x0', dateInput,saveVideoBool=saveVideoBool)
+# plotModels('f', dateInput,saveVideoBool=saveVideoBool) 
+# plotModels('x0', dateInput,saveVideoBool=saveVideoBool)
 plotModels('submovement', dateInput,saveVideoBool=saveVideoBool) 
 
-plotModels('f', dateInput, classicalBool = True, saveVideoBool=saveVideoBool) 
-plotModels('x0', dateInput, classicalBool = True,saveVideoBool=saveVideoBool)
-subPlotObject = plotModels('submovement', dateInput, classicalBool = True,saveVideoBool=saveVideoBool)
-subPlotObject.makeExampleSubmovementPlot()
+# plotModels('f', dateInput, classicalBool = True, saveVideoBool=saveVideoBool) 
+# plotModels('x0', dateInput, classicalBool = True,saveVideoBool=saveVideoBool)
+# subPlotObject = plotModels('submovement', dateInput, classicalBool = True,saveVideoBool=saveVideoBool)
+# subPlotObject.makeExampleSubmovementPlot()
 
 print('done')
