@@ -34,6 +34,7 @@ class plotModels():
         # Add code to import a model
         if self.classicalBool == False:
             self.model = PPO.load(self.save_path+'/best_model')
+            # self.model = PPO.load(self.save_path+'/model_final')
         elif self.classicalBool == True:
             if controllerType == 'f':
                 self.model = modelClassical_f(controllerType, self.env.tolerance_x)
@@ -49,6 +50,8 @@ class plotModels():
         # Hard code submovement as a sanity check
         self.N = int(np.ceil(self.env.timeMax/self.env.timeStep))
         # self.N = int(np.ceil(self.env.timeMax/(self.env.timeStep*self.env.downSampleFactor)))
+
+        # evaluate_policy(self.model, self.env, n_eval_episodes=50)
 
         self.simulateModel()
         # self.record_video(video_length=self.N, video_file = self.save_path+"/video"+self.controllerType+"_"+self.nameLearnClassic+".mp4")
@@ -99,7 +102,7 @@ class plotModels():
             # actionList.append(action.append(env.time))
             self.score += reward
             count += 1
-            # print('Episode:{} Score:{} Action:{}'.format(episode, self.score, action))
+            print('Episode:{} Score:{} Action:{}'.format(episode, self.score, action))
         if self.saveVideoBool:
             # Release video writer
             video_writer.release()
@@ -109,32 +112,6 @@ class plotModels():
         # self.timeVec = np.arange(self.N) * (self.env.timeStep*self.env.downSampleFactor)
 
         pass
-
-    # # Function to record a video of the environment
-    # def record_video(self, video_length, video_file="video.mp4"):
-    #     # Initialize video writer
-    #     fps = int(1/self.env.timeStep)
-    #     height, width, _ = self.env.render().shape
-    #     video_writer = cv2.VideoWriter(video_file, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
-
-    #     obs,_ = self.env.reset()
-    #     for _ in range(video_length):
-    #         # Render the environment
-    #         frame = self.env.render()
-    #         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-
-    #         # Save frame to video
-    #         video_writer.write(frame)
-
-    #         # Take an action using the model
-    #         action, _ = self.model.predict(obs)
-    #         obs, _, truncated, _, _ = self.env.step(action)
-
-    #         if truncated:
-    #             obs, _ = self.env.reset()
-
-    #     # Release video writer
-    #     video_writer.release()
 
     def evaluate_policy_all_rewards(self,numEpisodes = 100):
         totalRewardList = []
@@ -249,7 +226,7 @@ class plotModels():
         plt.close(plt.gcf().number)        
 
 
-dateInput = '23-07-26'
+dateInput = '23-07-28'
 saveVideoBool = False
 plotModels('f', dateInput,saveVideoBool=saveVideoBool) 
 plotModels('x0', dateInput,saveVideoBool=saveVideoBool)

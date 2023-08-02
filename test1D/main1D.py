@@ -21,7 +21,7 @@ from sb3_contrib import RecurrentPPO
 # tensorboard --logdir='Training/Logs'  
 
 # from stable_baselines3.common.env_checker import check_env
-# env = env1D('f')
+# env = env1D('x0')
 # check_env(env)
 
 # Ideas:
@@ -32,8 +32,8 @@ from sb3_contrib import RecurrentPPO
 
 # computationType = 'EvaluatePreLearning'
 # computationType = 'Learn' 
-# computationType = 'hardcode'
-computationType = 'classical'
+computationType = 'hardcode'
+# computationType = 'classical'
 # computationType = 'hardcode - submovement'
 # computationType = 'Evaluate'
 # computationType = 'saveVideo'
@@ -42,13 +42,13 @@ saveName = 'test1D'
 
 if( computationType == 'EvaluatePreLearning'):
 # Look at it play untrained
-    env = env1D(controllerType='x0',render_mode = 'human')
-    obs = env.reset()
+    env = env1D(controllerType='submovement') #,render_mode = 'human')
+    obs,_ = env.reset()
     score = 0
     terminated = 0
     episode = 0
     while not terminated:
-        action = env.action_space.sample()
+        action = 0 #env.action_space.sample()
         obs, reward, terminated, truncated, info = env.step(action)
         score += reward
         print('Episode:{} Score:{} position{}, time:{}, action:{}'.format(episode, score, obs[0], env.time,action))
@@ -81,29 +81,32 @@ if( computationType == 'classical' ):
 if( computationType == 'hardcode'):
 
     # Add code to import a model
-    controllerType = 'x0'
+    controllerType = 'submovement'
+    model = PPO.load('/Users/jhermus/Documents/School/EPFL/embeddingStructure/Training/General/23-08-01_submovement/best_model.zip')
 
     # Hard code submovement as a sanity check
     env = env1D(controllerType,render_mode='human')
-    obs = env.reset()
-    done = False
+    obs,_ = env.reset()
+    terminated = False
     score = 0
     episode = 0
+    N = int(env.timeMax/env.timeStep + 1)
+    x = np.zeros(N)
+    f = np.zeros(N)
     count = 0
-    N = 1.0/env.timeStep + 1
-    x = np.zeros((int(N)))
-    f = np.zeros((int(N)))
-    while not done:
+    while not terminated:
         # action = np.array([0.5], dtype=np.float32)
         action = model.predict(obs,deterministic=False)[0] # Use trained model
         obs, reward, terminated, truncated, info = env.step(action)
         # f[count],_ = env.robot.get_force(obs, action, env.time) # action[0]
         x[count] = obs[0]
+        N_sub_tot = obs[4]
         score += reward
-        print('Episode:{} Score:{}'.format(episode, score))
+        # print('Episode:{} Score:{}'.format(episode, score))
         # if count >= 1:
         #     env.render()
         # count += 1
+        print('Episode:{} Score:{} position:{}, time:{}, action:{}, N_sub:{}'.format(episode, score, obs[0], env.time, action, N_sub_tot))
     env.close()
     timeVec = np.arange(N) * env.timeStep
     

@@ -44,28 +44,30 @@ def trainModel(controllerType,n_timesteps,num_proc):
 
     _, log_path, save_path = defineDirectories(controllerType)  
 
-    def make_env(env_id: str,rank: int, seed: int = 0) -> Callable:
-        """
-        Utility function for multiprocessed env.
+    # def make_env(env_id: str,rank: int, seed: int = 0) -> Callable:
+    #     """
+    #     Utility function for multiprocessed env.
 
-        :param env_id: (str) the environment ID
-        :param num_env: (int) the number of environment you wish to have in subprocesses
-        :param seed: (int) the inital seed for RNG
-        :param rank: (int) index of the subprocess
-        :return: (Callable)
-        """
+    #     :param env_id: (str) the environment ID
+    #     :param num_env: (int) the number of environment you wish to have in subprocesses
+    #     :param seed: (int) the inital seed for RNG
+    #     :param rank: (int) index of the subprocess
+    #     :return: (Callable)
+    #     """
 
-        def _init() -> gym.Env:
-            env = Monitor(env1D(env_id))
-            env.reset(seed=seed + rank)
-            return env
+    #     def _init() -> gym.Env:
+    #         env = Monitor(env1D(env_id))
+    #         env.reset(seed=seed + rank)
+    #         return env
 
-        set_random_seed(seed)
-        return _init
+    #     set_random_seed(seed)
+    #     return _init
     
-    # Create the vectorized environment
-    env = DummyVecEnv([make_env(controllerType,i) for i in range(num_proc)])
-    env = VecNormalize(env,norm_obs=True, norm_reward=True)
+    # # Create the vectorized environment
+    # env = DummyVecEnv([make_env(controllerType,i) for i in range(num_proc)])
+    # env = VecNormalize(env,norm_obs=True, norm_reward=True)
+
+    env = env1D(controllerType)
 
     model = PPO('MlpPolicy',env,verbose=0,tensorboard_log=log_path)
     stop_callback = StopTrainingOnRewardThreshold(reward_threshold=700, verbose=0)
@@ -84,11 +86,11 @@ def trainModel(controllerType,n_timesteps,num_proc):
     
     env_eval = env1D(controllerType,render_mode=None)
     obs = env_eval.reset()
-    evaluate_policy(model, env_eval, n_eval_episodes=10, render=False)
+    # evaluate_policy(model, env_eval, n_eval_episodes=100, render=False)
 
 
 n_timesteps = 30_000_000
-controllerType = ['f','x0','submovement']
+controllerType = ['submovement'] # ['f','x0','submovement']
 for i in range(len(controllerType)):
     trainModel(controllerType[i],n_timesteps, num_proc)
 

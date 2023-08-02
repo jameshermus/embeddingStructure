@@ -137,12 +137,13 @@ class controller_submovement(controller):
         position_range = [-100,100]#[-1.0,2.0]
         velocity_range = [-1000,1000]#[-20,20]
         x0fhat_range = [-1000,1000]
+        N_sub_tot_range = [-1000,1000]
 
-        observation_min = np.array([position_range[0],velocity_range[0],target_range[0],x0fhat_range[0]],dtype=np.float32)
-        observation_max = np.array([position_range[1],velocity_range[1],target_range[1],x0fhat_range[1]],dtype=np.float32)
+        observation_min = np.array([position_range[0],velocity_range[0],target_range[0],x0fhat_range[0],N_sub_tot_range[0]],dtype=np.float32)
+        observation_max = np.array([position_range[1],velocity_range[1],target_range[1],x0fhat_range[1],N_sub_tot_range[1]],dtype=np.float32)
 
         action_space = spaces.Discrete(5) # action can take values: 0, 1, 2, 3, 4
-        observation_space = spaces.Box(low = observation_min, high=observation_max,shape=(4,)) 
+        observation_space = spaces.Box(low = observation_min, high=observation_max,shape=(5,)) 
 
         return action_space, observation_space
     
@@ -166,7 +167,7 @@ class controller_submovement(controller):
     def get_observation(self,env):
         xfhat_0b_b, _ = self.sumOnGoingSubmovements_Vec(env.time + self.D_high) # Estiamte final position after final submovement ends
         xfhat_0b_b = np.float32(xfhat_0b_b)
-        return np.array([env.x, env.x_dot,env.target,xfhat_0b_b],dtype=np.float32)
+        return np.array([env.x, env.x_dot,env.target,xfhat_0b_b,self.N_sub_tot],dtype=np.float32)
     
     def reset_controller(self):
         self.onGoingSubmovements = []
@@ -193,9 +194,9 @@ class controller_submovement(controller):
             # add to list
             if actionSelection: # Applied only when step == true
                 self.add_submovement([duration, amplitude, time])
-                extraCost = -0.1
-                # if (self.latency <= self.thresholdLatency):
-                #     extraCost += -100
+                extraCost = -10 # 0.1
+                if (self.latency <= self.thresholdLatency):
+                    extraCost += -100
                 self.latency = 0 # Reset latence after adding extra cost
             else:
                 self.latency += 1

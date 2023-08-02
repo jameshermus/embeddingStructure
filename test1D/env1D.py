@@ -91,7 +91,7 @@ class env1D(gym.Env):
         if (abs(self.target - self.x) < self.tolerance_x):
                 reward = 1
         else:
-            reward = 0            
+            reward = 0   
 
         # actionNull = 0
         # if self.controllerType == 'submovement':
@@ -102,14 +102,29 @@ class env1D(gym.Env):
      
         # Observation
         observation = self.robot.get_observation(self)
+
+        if self.controllerType == 'submovement':
+            if self.robot.N_sub_tot > 10:
+                reward +=-500
+
             
+        # Let simulation run a fixed number of time steps
+        if self.time >= self.timeMax - 0.05:
+            terminated = True
+
+            # Add high penelty for zero submovements or more than 10 submovements
+            if self.controllerType == 'submovement':
+                if self.robot.N_sub_tot == 0:
+                    reward += -500
+
+
         # Let simulation run a fixed number of time steps
         if self.time >= self.timeMax:
             terminated = True
 
             # Add high penelty for zero submovements or more than 10 submovements
-            if self.controllerType == 'submovment':
-                if self.robot.N_sub_tot > 10 or self.robot.N_sub_tot == 0:
+            if self.controllerType == 'submovement':
+                if self.robot.N_sub_tot == 0:
                     reward += -500
         else: 
             terminated = False
