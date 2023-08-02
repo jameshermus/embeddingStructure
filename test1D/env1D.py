@@ -103,16 +103,13 @@ class env1D(gym.Env):
         # Observation
         observation = self.robot.get_observation(self)
 
-        if self.controllerType == 'submovement':
-            if self.robot.N_sub_tot > 10:
-                reward +=-500
+        # if self.controllerType == 'submovement':
+        #     if self.robot.N_sub_tot > 10:
+        #         reward +=-500
 
             
-        # Let simulation run a fixed number of time steps
+        # Add cost for no submovement
         if self.time >= self.timeMax - 0.05:
-            terminated = True
-
-            # Add high penelty for zero submovements or more than 10 submovements
             if self.controllerType == 'submovement':
                 if self.robot.N_sub_tot == 0:
                     reward += -500
