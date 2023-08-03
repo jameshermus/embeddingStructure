@@ -90,7 +90,7 @@ def trainModel(controllerType,n_timesteps,num_proc):
 
 
 n_timesteps = 30_000_000
-controllerType = ['submovement'] # ['f','x0','submovement']
+controllerType = ['f','x0','submovement']
 for i in range(len(controllerType)):
     trainModel(controllerType[i],n_timesteps, num_proc)
 
