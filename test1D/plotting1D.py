@@ -226,7 +226,7 @@ class plotModels():
         plt.close(plt.gcf().number)        
 
 
-dateInput = '23-07-28'
+dateInput = '23-08-03'
 saveVideoBool = False
 # plotModels('f', dateInput,saveVideoBool=saveVideoBool) 
 # plotModels('x0', dateInput,saveVideoBool=saveVideoBool)
