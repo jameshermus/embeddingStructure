@@ -28,6 +28,6 @@ def defineDirectories(controllerType,dateInput = None):
     else:
         saveName = dateInput + "_" + controllerType
 
-    log_path = os.path.join('Training','Logs')
+    log_path = os.path.join('Training','Logs', saveName)
     save_path = os.path.join('Training','General', saveName)
     return saveName, log_path, save_path,
