@@ -195,8 +195,8 @@ class controller_submovement(controller):
             if actionSelection: # Applied only when step == true
                 self.add_submovement([duration, amplitude, time])
                 extraCost = -0.5 # 0.1
-                if (self.latency <= self.thresholdLatency):
-                    extraCost += -10
+                # if (self.latency <= self.thresholdLatency):
+                #     extraCost += -5#10
                 self.latency = 0 # Reset latence after adding extra cost
             else:
                 self.latency += 1
