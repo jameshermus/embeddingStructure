@@ -3,3 +3,6 @@
 .DS_Store
 /Training/*
 /.venv/*
+/__pycache__/*
+*/__pycache__/*
+temp_render.png
