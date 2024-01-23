@@ -13,7 +13,7 @@ import pybullet as p
 import pybullet_data
 import math
 
-from robot import robot, robot_iiwa, robot_iiwa_tauController, robot_iiwa_zftController, robot_iiwa_submovementControl
+from originalTestRobot.robot import robot, robot_iiwa, robot_iiwa_tauController, robot_iiwa_zftController, robot_iiwa_submovementControl
 
 class PyBulletRobot(Env):
     def __init__(self,renderType):
